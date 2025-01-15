@@ -14,7 +14,7 @@ kotlinx-kover = "0.9.1"
 versions = "0.51.0"
 compose-multiplatform = "1.7.3"
 androidx-core-ktx = "1.15.0"
-androidx-activity = "1.9.3"
+androidx-activity = "1.10.0"
 androidx-appcompat = "1.7.0"
 # This is the latest version of the androidx-lifecycle library that is compatible with compose-multiplatform
 # noinspection GradleDependency
