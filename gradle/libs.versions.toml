@@ -18,7 +18,7 @@ androidx-activity = "1.10.1"
 androidx-appcompat = "1.7.0"
 # This is the latest version of the androidx-lifecycle library that is compatible with compose-multiplatform
 # noinspection GradleDependency
-androidx-lifecycle = "2.9.0-alpha07"
+androidx-lifecycle = "2.9.0"
 junit = "4.13.2"
 binaryCompatibility = "0.17.0"
 dokka = "2.0.0"
