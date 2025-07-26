@@ -1,7 +1,9 @@
 package dev.stateholder.dispatcher
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Suppress("FunctionName")
 public fun <Action> DebounceDispatcher(
     debounce: Long = 100,
