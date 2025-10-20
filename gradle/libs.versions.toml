@@ -16,9 +16,7 @@ compose-multiplatform = "1.9.1"
 androidx-core-ktx = "1.17.0"
 androidx-activity = "1.11.0"
 androidx-appcompat = "1.7.1"
-# This is the latest version of the androidx-lifecycle library that is compatible with compose-multiplatform
-# noinspection GradleDependency
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.9.5"
 junit = "4.13.2"
 binaryCompatibility = "0.18.1"
 dokka = "2.1.0"
@@ -30,7 +28,6 @@ voyager = "1.1.0-beta03"
 
 [libraries]
 androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
-androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
@@ -65,4 +62,4 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 
 [bundles]
-androidx = ["androidx-core", "androidx-lifecycle", "androidx-appcompat"]
+androidx = ["androidx-core", "androidx-appcompat"]
