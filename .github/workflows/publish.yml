@@ -77,7 +77,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v3
 
       - name: Generate documentation
-        run: ./gradlew dokkaHtmlMultiModule
+        run: ./gradlew dokkaGenerate
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
