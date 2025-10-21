@@ -12,7 +12,7 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    js(IR) {
+    js {
         browser()
         nodejs()
         binaries.executable()
@@ -38,21 +38,17 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.collections)
-                api(libs.androidx.lifecycle.runtime)
-            }
+        commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.collections)
+            api(libs.androidx.lifecycle.runtime)
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.kotest.assertions)
-                implementation(libs.turbine)
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotest.assertions)
+            implementation(libs.turbine)
         }
     }
 }

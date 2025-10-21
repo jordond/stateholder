@@ -21,7 +21,7 @@ kotlin {
         binaries.executable()
     }
 
-    jvm("desktop")
+    jvm()
 
     listOf(
         iosX64(),
@@ -43,26 +43,24 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
-            dependencies {
-                implementation(projects.core)
-                implementation(projects.dispatcher)
-                implementation(projects.dispatcherCompose)
-                implementation(projects.extensionsCompose)
-                implementation(projects.extensionsVoyager)
+        commonMain.dependencies {
+            implementation(projects.core)
+            implementation(projects.dispatcher)
+            implementation(projects.dispatcherCompose)
+            implementation(projects.extensionsCompose)
+            implementation(projects.extensionsVoyager)
 
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.materialIconsExtended)
-                implementation(compose.ui)
-                implementation(compose.components.resources)
-                implementation(compose.components.uiToolingPreview)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kermit)
-                implementation(libs.voyager.navigator)
-                implementation(libs.voyager.screenModel)
-            }
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kermit)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.screenModel)
         }
 
         androidMain.dependencies {
@@ -74,8 +72,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.guava)
         }
 
-        val desktopMain by getting
-        desktopMain.dependencies {
+        jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }

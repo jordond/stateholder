@@ -41,19 +41,15 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(projects.dispatcher)
-                implementation(compose.runtime)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.androidx.lifecycle.runtime.compose)
-            }
+        commonMain.dependencies {
+            api(projects.dispatcher)
+            implementation(compose.runtime)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.androidx.lifecycle.runtime.compose)
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
     }
 }

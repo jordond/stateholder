@@ -26,7 +26,7 @@ kotlin {
         binaries.executable()
     }
 
-    jvm("desktop")
+    jvm()
 
     listOf(
         iosX64(),
@@ -39,22 +39,18 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(projects.core)
+        commonMain.dependencies {
+            implementation(projects.core)
 
-                implementation(compose.runtime)
-                implementation(compose.runtimeSaveable)
-                implementation(libs.kotlinx.collections)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.androidx.lifecycle.viewmodel)
-            }
+            implementation(compose.runtime)
+            implementation(compose.runtimeSaveable)
+            implementation(libs.kotlinx.collections)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.androidx.lifecycle.viewmodel)
         }
 
-        val desktopMain by getting {
-            dependencies {
-                api(libs.kotlinx.coroutines.swing)
-            }
+        jvmMain.dependencies {
+            api(libs.kotlinx.coroutines.swing)
         }
     }
 }
