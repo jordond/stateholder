@@ -13,7 +13,7 @@ public abstract interface class dev/stateholder/EventHolder {
 public abstract interface class dev/stateholder/StateContainer {
 	public static final field Companion Ldev/stateholder/StateContainer$Companion;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getValue (Ldev/stateholder/StateHolder;Lkotlin/reflect/KProperty;)Lkotlinx/coroutines/flow/StateFlow;
+	public fun getValue (Ldev/stateholder/StateHolder;Lkotlin/reflect/KProperty;)Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun merge (Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 	public abstract fun merge (Ldev/stateholder/StateHolder;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 	public abstract fun merge (Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;

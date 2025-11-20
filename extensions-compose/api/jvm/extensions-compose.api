@@ -1,4 +1,10 @@
-public final class dev/stateholder/extensions/CollectAsState_nonAndroidKt {
-	public static final fun collectAsState (Ldev/stateholder/StateOwner;Lcom/arkivanov/essenty/lifecycle/Lifecycle$State;Lkotlin/coroutines/CoroutineContext;Landroidx/compose/runtime/Composer;II)Landroidx/compose/runtime/State;
+public final class dev/stateholder/extensions/CollectAsStateKt {
+	public static final fun collectAsState (Ldev/stateholder/StateHolder;Landroidx/lifecycle/LifecycleOwner;Landroidx/lifecycle/Lifecycle$State;Lkotlin/coroutines/CoroutineContext;Landroidx/compose/runtime/Composer;II)Landroidx/compose/runtime/State;
+}
+
+public final class dev/stateholder/extensions/HandleEventsKt {
+	public static final fun HandleEvents (Ldev/stateholder/EventHolder;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun HandleEvents (Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun HandleEvents (Lkotlinx/collections/immutable/PersistentList;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 }
 
