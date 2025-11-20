@@ -1,8 +1,10 @@
 package dev.stateholder.dispatcher
 
+import androidx.compose.runtime.Immutable
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 
+@Immutable
 public fun interface Dispatcher<Action> {
     public fun dispatch(action: Action)
 
