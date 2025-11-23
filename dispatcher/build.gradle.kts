@@ -44,7 +44,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.compose.stableMarker)
+            implementation(libs.compose.runtime.annotations)
         }
 
         commonTest.dependencies {
