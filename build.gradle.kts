@@ -21,7 +21,6 @@ dependencies {
     dokka(projects.core)
     dokka(projects.dispatcher)
     dokka(projects.dispatcherCompose)
-    dokka(projects.extensionsAndroid)
     dokka(projects.extensionsCompose)
     dokka(projects.extensionsCompose)
     dokka(projects.extensionsViewmodel)

@@ -1,5 +1,9 @@
 @file:Suppress("OPT_IN_USAGE")
 
+import com.android.build.api.dsl.androidLibrary
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
+
+
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.compose)
@@ -10,14 +14,18 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(jdkVersion = 11)
     explicitApi()
     applyDefaultHierarchyTemplate()
 
-    androidTarget {
-        publishLibraryVariants("release")
+    @Suppress("UnstableApiUsage")
+    androidLibrary {
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        namespace = "dev.jordond.stateholder.extensions.voyager"
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
-    js(IR) {
+    js(KotlinJsCompilerType.IR) {
         browser()
         binaries.executable()
     }
@@ -51,33 +59,5 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
         }
-    }
-}
-
-android {
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    namespace = "dev.jordond.stateholder.extensions.voyager"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlin {
-        jvmToolchain(jdkVersion = 11)
     }
 }
