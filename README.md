@@ -82,22 +82,22 @@ kotlin {
         commonMain {
             dependencies {
                 // Core state management
-                implementation("dev.stateholder:core:1.0.1")
+                implementation("dev.stateholder:core:2.0.0")
 
                 // Dispatcher for action handling
-                implementation("dev.stateholder:dispatcher:1.0.1")
+                implementation("dev.stateholder:dispatcher:2.0.0")
 
                 // Compose extensions (state collection, event handling)
-                implementation("dev.stateholder:extensions-compose:1.0.1")
+                implementation("dev.stateholder:extensions-compose:2.0.0")
 
                 // Compose dispatcher helpers
-                implementation("dev.stateholder:dispatcher-compose:1.0.1")
+                implementation("dev.stateholder:dispatcher-compose:2.0.0")
 
                 // ViewModel base classes (AndroidX ViewModel)
-                implementation("dev.stateholder:extensions-viewmodel:1.0.1")
+                implementation("dev.stateholder:extensions-viewmodel:2.0.0")
 
                 // Voyager base classes
-                implementation("dev.stateholder:extensions-voyager:1.0.1")
+                implementation("dev.stateholder:extensions-voyager:2.0.0")
             }
         }
     }
@@ -110,11 +110,11 @@ For an Android-only project, add the dependencies to your app-level `build.gradl
 
 ```kotlin
 dependencies {
-    implementation("dev.stateholder:core:1.0.1")
-    implementation("dev.stateholder:dispatcher:1.0.1")
-    implementation("dev.stateholder:extensions-compose:1.0.1")
-    implementation("dev.stateholder:dispatcher-compose:1.0.1")
-    implementation("dev.stateholder:extensions-viewmodel:1.0.1")
+    implementation("dev.stateholder:core:2.0.0")
+    implementation("dev.stateholder:dispatcher:2.0.0")
+    implementation("dev.stateholder:extensions-compose:2.0.0")
+    implementation("dev.stateholder:dispatcher-compose:2.0.0")
+    implementation("dev.stateholder:extensions-viewmodel:2.0.0")
 }
 ```
 
@@ -122,7 +122,7 @@ dependencies {
 
 ```toml
 [versions]
-stateholder = "1.0.1"
+stateholder = "2.0.0"
 
 [libraries]
 stateholder-core = { module = "dev.stateholder:core", version.ref = "stateholder" }

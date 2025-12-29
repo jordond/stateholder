@@ -5,7 +5,7 @@ PARENT="$(cd "$CWD"/.. >/dev/null 2>&1 && pwd)"
 
 set -e
 
-SEMVER_REG="([[:digit:]]+(\.[[:digit:]]+)+)"
+SEMVER_REG="([[:digit:]]+(\.[[:digit:]]+)+(-[[:alnum:].-]+)?)"
 
 README_FILE="$PARENT/README.md"
 VERSION_FILE="$PARENT/gradle/libs.versions.toml"
@@ -30,7 +30,7 @@ if [ -z "$LIBS_KOTLIN_VERSION" ]; then
   echo "Unable to find Kotlin version in '$VERSION_FILE'"
 else
   echo "Updating Kotlin version: '$LIBS_KOTLIN_VERSION'"
-  sed -i '' -E "s/kotlin-v$SEMVER_REG/kotlin-v$LIBS_KOTLIN_VERSION/" "$README_FILE"
+  sed -i '' -E "s/(kotlin-v)$SEMVER_REG(-blue)/\1$LIBS_KOTLIN_VERSION\5/" "$README_FILE"
 fi
 
 # Update Compose Multiplatform badge in README.md
@@ -39,5 +39,5 @@ if [ -z "$LIBS_COMPOSE_VERSION" ]; then
   echo "Unable to find Compose Multiplatform version in '$VERSION_FILE'"
 else
   echo "Updating Compose version: '$LIBS_COMPOSE_VERSION'"
-  sed -i '' -E "s/Compose%20Multiplatform-v$SEMVER_REG/Compose%20Multiplatform-v$LIBS_COMPOSE_VERSION/" "$README_FILE"
+  sed -i '' -E "s/(Compose%20Multiplatform-v)$SEMVER_REG(-blue)/\1$LIBS_COMPOSE_VERSION\5/" "$README_FILE"
 fi
