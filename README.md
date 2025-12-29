@@ -42,15 +42,6 @@ This library is very un-opinionated and does not force you to use any particular
 can create your `StateHolder` anywhere you want. This also means you are responsible for scoping the
 state, and on Android persisting the state across process death.
 
-### Planned Features
-
-Currently this library is in a very early stage. There are a few more features I wish to add such
-as:
-
-- [ ] Support for retaining state across process death on Android
-- [x] Extensions for other platforms (iOS, JS, JVM, etc)
-- [ ] Documentation
-
 ## Setup
 
 You can add this library to your project using Gradle.
@@ -71,9 +62,6 @@ kotlin {
 
                 // Optional Voyager extensions
                 implementation("dev.stateholder.extensions-voyager:1.0.1")
-
-                // Optional Android-only extensions (not KMP friendly)
-                implementation("dev.stateholder.extensions-android:1.0.1")
             }
         }
     }
@@ -87,7 +75,6 @@ kotlin {
 | `core`               |    ✅    |    ✅    |  ✅  |   ✅   |     ✅      |    ✅    |     ✅     |
 | `extensions-compose` |    ✅    |    ✅    |  ✅  |   ✅   |     ✅      |    ✅    |     ❌     |
 | `extensions-voyager` |    ✅    |    ✅    |  ✅  |   ✅   |     ❌      |    ✅    |     ❌     |
-| `extensions-android` |    ✅    |    ❌    |  ❌  |   ❌   |     ❌      |    ❌    |     ❌     |
 
 ### Android
 
@@ -103,9 +90,6 @@ dependencies {
 
     // Optional Voyager extensions
     implementation("dev.stateholder.extensions-voyager:1.0.1")
-
-    // Optional Android extensions
-    implementation("dev.stateholder:extensions-android:1.0.1")
 }
 ```
 
@@ -118,7 +102,6 @@ stateholder = "1.0.1"
 [libraries]
 stateholder-core = { module = "dev.stateholder:core", version.ref = "stateholder" }
 stateholder-extensions-compose = { module = "dev.stateholder:extensions-compose", version.ref = "stateholder" }
-stateholder-extensions-android = { module = "dev.stateholder:extensions-android", version.ref = "stateholder" }
 stateholder-extensions-voyager = { module = "dev.stateholder:extensions-voyager", version.ref = "stateholder" }
 ```
 
