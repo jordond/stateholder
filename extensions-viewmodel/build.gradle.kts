@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -10,10 +11,16 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(jdkVersion = 11)
     explicitApi()
     applyDefaultHierarchyTemplate()
 
-    androidTarget()
+    @Suppress("UnstableApiUsage")
+    androidLibrary {
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        namespace = "dev.jordond.stateholder.extensions.viewmodel"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+    }
 
     js(IR) {
         browser()
@@ -52,33 +59,5 @@ kotlin {
         jvmMain.dependencies {
             api(libs.kotlinx.coroutines.swing)
         }
-    }
-}
-
-android {
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    namespace = "dev.jordond.stateholder.extensions.viewmodel"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlin {
-        jvmToolchain(jdkVersion = 11)
     }
 }
