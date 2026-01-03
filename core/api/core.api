@@ -10,6 +10,10 @@ public abstract interface class dev/stateholder/EventHolder {
 	public abstract fun handle (Ljava/lang/Object;)V
 }
 
+public abstract interface class dev/stateholder/FlowStateProvider : dev/stateholder/StateProvider {
+	public abstract fun states ()Lkotlinx/coroutines/flow/Flow;
+}
+
 public abstract interface class dev/stateholder/StateContainer {
 	public static final field Companion Ldev/stateholder/StateContainer$Companion;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
