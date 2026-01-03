@@ -15,7 +15,6 @@ package dev.stateholder
  *
  * ```
  * class MyRepo {
- *
  *   fun getSomeData(): Int = 42
  * }
  *
@@ -31,7 +30,6 @@ package dev.stateholder
  * This provides a testable way to provide state for a [StateContainer].
  */
 public fun interface StateProvider<State> {
-
     public fun provide(): State
 }
 

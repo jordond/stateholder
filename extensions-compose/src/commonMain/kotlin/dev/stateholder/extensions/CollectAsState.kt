@@ -10,6 +10,31 @@ import dev.stateholder.StateHolder
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+/**
+ * Collects the [StateHolder.state] flow as Compose [State] with lifecycle awareness.
+ *
+ * This extension wraps [collectAsStateWithLifecycle] to automatically pause collection
+ * when the lifecycle falls below [minActiveState], preventing unnecessary updates when
+ * the UI is not visible.
+ *
+ * Example:
+ *
+ * ```
+ * @Composable
+ * fun MyScreen(viewModel: MyViewModel) {
+ *     val state by viewModel.collectAsState()
+ *
+ *     Text(text = state.message)
+ * }
+ * ```
+ *
+ * @param lifecycleOwner The [LifecycleOwner] to use for lifecycle-aware collection.
+ *   Defaults to [LocalLifecycleOwner].
+ * @param minActiveState The minimum [Lifecycle.State] required to collect updates.
+ *   Defaults to [Lifecycle.State.STARTED].
+ * @param context Optional [CoroutineContext] to use for collection.
+ * @return A Compose [State] containing the current value from the [StateHolder].
+ */
 @Composable
 public fun <T> StateHolder<T>.collectAsState(
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,

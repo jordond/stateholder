@@ -6,11 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
  * Exposes a [state] property that can be used to access the state of a [StateContainer].
  */
 public interface StateHolder<State> {
-
     public val state: StateFlow<State>
 
     public companion object {
-
         /**
          * Create a state owner from the given [stateContainer].
          */

@@ -4,6 +4,7 @@ import dev.stateholder.internal.DefaultStateContainer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KProperty
 
@@ -16,7 +17,6 @@ import kotlin.reflect.KProperty
  * @param[State] The type of the state.
  */
 public interface StateContainer<State> {
-
     /**
      * The current state of type [State] exposed as a [StateFlow].
      */
@@ -26,7 +26,7 @@ public interface StateContainer<State> {
      * One way subscription to update the state with another [flow].
      *
      * This is useful when you need to update the [state] based off of another [Flow]. The [flow]
-     * will be collected and [block] will be invoked in order to map the [T] value from [flow] to
+     * will be collected and [block] will be invoked to map the [T] value from [flow] to
      * the [State] value.
      *
      * The collecting can be stopped by cancelling the returned [Job].
@@ -47,7 +47,7 @@ public interface StateContainer<State> {
      * One way subscription to update the state with another [container].
      *
      * This is useful when you need to update the [state] based off of another [StateContainer]. The
-     * [container] will be observed and [block] will be invoked in order to map the [T] value from
+     * [container] will be observed and [block] will be invoked to map the [T] value from
      * [container] to the [State] value.
      *
      * The observing can be stopped by cancelling the returned [Job].
@@ -67,7 +67,7 @@ public interface StateContainer<State> {
      * One way subscription to update the state with another [holder].
      *
      * This is useful when you need to update the [state] based off of another [StateHolder]. The
-     * [holder] will be observed and [block] will be invoked in order to map the [T] value from
+     * [holder] will be observed and [block] will be invoked to map the [T] value from
      * [holder] to the [State] value.
      *
      * The observing can be stopped by cancelling the returned [Job].
@@ -84,8 +84,8 @@ public interface StateContainer<State> {
     ): Job
 
     /**
-     * Updates the MutableStateFlow.value atomically using the specified function of its value.
-     * function may be evaluated multiple times, if value is being concurrently updated.
+     * Updates the [MutableStateFlow.value] atomically using the specified function of its value.
+     * Function may be evaluated multiple times if the value is being concurrently updated.
      */
     public fun update(block: (State) -> State)
 
@@ -104,7 +104,6 @@ public interface StateContainer<State> {
     ): StateFlow<State> = state
 
     public companion object {
-
         /**
          * Create a [StateContainer] with the given [initialStateProvider].
          */
@@ -132,6 +131,14 @@ public fun <State> stateContainer(
     initialState: State,
 ): StateContainer<State> = StateContainer.create(provideState(initialState))
 
+/**
+ * Merge this flow with the state container, updating the state based on the provided block.
+ *
+ * @param container The state container to merge with.
+ * @param scope The coroutine scope for the merging operation.
+ * @param block The block to update the state with the incoming value.
+ * @return A job representing the merging operation.
+ */
 public fun <T, State> Flow<T>.mergeWithState(
     container: StateContainer<State>,
     scope: CoroutineScope,
