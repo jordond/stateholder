@@ -1,5 +1,7 @@
 package dev.stateholder
 
+import kotlinx.coroutines.flow.Flow
+
 /**
  * A provider of a state for a [StateContainer].
  *
@@ -31,6 +33,29 @@ package dev.stateholder
  */
 public fun interface StateProvider<State> {
     public fun provide(): State
+}
+
+/**
+ * A reactive provider of state for a [StateContainer].
+ *
+ * Unlike [StateProvider] which provides a single state value, this interface
+ * provides both an initial state via [StateProvider.provide] and a [Flow] of state updates.
+ *
+ * ```
+ * class MyFlowStateProvider @Inject constructor(repo: MyRepo) : FlowStateProvider<Int> {
+ *     override fun states() = repo.observeData()
+ * }
+ *
+ * class MyModel @Inject constructor(stateProvider: MyFlowStateProvider) : ViewModel() {
+ *     private val container = stateContainer(stateProvider)
+ * }
+ * ```
+ */
+public interface FlowStateProvider<State> : StateProvider<State> {
+    /**
+     * Returns a [Flow] that emits state updates.
+     */
+    public fun states(): Flow<State>
 }
 
 /**
