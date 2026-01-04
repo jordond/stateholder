@@ -8,6 +8,7 @@ import dev.stateholder.StateHolder
 import dev.stateholder.StateProvider
 import dev.stateholder.compose
 import dev.stateholder.provider.ComposedStateProvider
+import dev.stateholder.provider.composedStateProvider
 import dev.stateholder.stateContainer
 import kotlinx.coroutines.flow.StateFlow
 
@@ -17,82 +18,156 @@ import kotlinx.coroutines.flow.StateFlow
  * Extend this class to create ScreenModels with built-in state management. The state is
  * exposed via the [StateHolder] interface, allowing UI components to collect state updates.
  *
- * Example using composeState:
+ * There are several ways to construct a StateScreenModel:
  *
+ * **Simple initial state:**
+ * ```
+ * class CounterScreenModel : StateScreenModel<CounterState>(CounterState())
+ * ```
+ *
+ * **With inline composition:**
+ * ```
+ * class CounterScreenModel @Inject constructor(
+ *     private val counterRepository: CounterRepository,
+ * ) : StateScreenModel<CounterState>(
+ *     initialState = CounterState(),
+ *     composer = {
+ *         counterRepository.count into { copy(count = it) }
+ *     },
+ * )
+ * ```
+ *
+ * **With ComposedStateProvider (for dependency injection):**
+ * ```
+ * class CounterScreenModel @Inject constructor(
+ *     composer: CounterStateComposer,
+ * ) : StateScreenModel<CounterState>(composer)
+ * ```
+ *
+ * **With a StateProvider:**
+ * ```
+ * class CounterScreenModel @Inject constructor(
+ *     counterStateProvider: CounterStateProvider,
+ *     private val counterRepository: CounterRepository,
+ * ) : StateScreenModel<CounterState>(
+ *     stateProvider = counterStateProvider,
+ *     composer = {
+ *         counterRepository.count into { copy(count = it) }
+ *     },
+ * )
+ * ```
+ *
+ * You can also compose state in the `init` block using [composeState]:
  * ```
  * class CounterScreenModel @Inject constructor(
  *     private val counterRepository: CounterRepository,
  * ) : StateScreenModel<CounterState>(CounterState()) {
- *
  *     init {
  *         composeState {
  *             counterRepository.count into { copy(count = it) }
- *         }
- *     }
- *
- *     fun increment() {
- *         updateState { it.copy(count = it.count + 1) }
- *     }
- * }
- * ```
- *
- * Example using ComposedStateProvider:
- *
- * ```
- * class CounterScreenModel @Inject constructor(
- *     composer: CounterStateComposer,
- * ) : StateScreenModel<CounterState>(composer) {
- *
- *     fun increment() {
- *         updateState { it.copy(count = it.count + 1) }
- *     }
- * }
- *
- * // In your Screen:
- * class CounterScreen : Screen {
- *     @Composable
- *     override fun Content() {
- *         val screenModel = rememberScreenModel { CounterScreenModel() }
- *         val state by screenModel.collectAsState()
- *
- *         Button(onClick = { screenModel.increment() }) {
- *             Text("Count: ${state.count}")
  *         }
  *     }
  * }
  * ```
  *
  * @param State The type of state managed by this ScreenModel.
- * @param initialState The initial state value.
+ * @param composer The provider that supplies initial state and composition logic.
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public abstract class StateScreenModel<State>(
-    initialState: State,
+    composer: ComposedStateProvider<State>,
 ) : ScreenModel, StateHolder<State> {
+    /**
+     * Creates a [StateScreenModel] with the given initial state.
+     *
+     * Example:
+     *
+     * ```
+     * class CounterScreenModel : StateScreenModel<CounterState>(CounterState())
+     * ```
+     *
+     * @param initialState The initial state.
+     */
+    public constructor(initialState: State) : this(composedStateProvider(initialState))
+
+    /**
+     * Creates a [StateScreenModel] with the given initial state and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class CounterScreenModel @Inject constructor(
+     *     private val counterRepository: CounterRepository,
+     * ) : StateScreenModel<CounterState>(
+     *     initialState = CounterState(),
+     *     composer = {
+     *         counterRepository.count into { copy(count = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param initialState The initial state.
+     * @param composer The DSL for composing state from flows.
+     */
+    public constructor(
+        initialState: State,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(initialState, composer))
+
+    /**
+     * Creates a [StateScreenModel] with the given [StateProvider].
+     *
+     * Example:
+     *
+     * ```
+     * class CounterScreenModel @Inject constructor(
+     *     counterStateProvider: CounterStateProvider,
+     * ) : StateScreenModel<CounterState>(counterStateProvider)
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     */
+    public constructor(stateProvider: StateProvider<State>) : this(
+        composedStateProvider(stateProvider)
+    )
+
+    /**
+     * Creates a [StateScreenModel] with the given [StateProvider] and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class CounterScreenModel @Inject constructor(
+     *     counterStateProvider: CounterStateProvider,
+     *     private val counterRepository: CounterRepository,
+     * ) : StateScreenModel<CounterState>(
+     *     stateProvider = counterStateProvider,
+     *     composer = {
+     *         counterRepository.count into { copy(count = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     * @param composer The DSL for composing state from flows.
+     */
+    public constructor(
+        stateProvider: StateProvider<State>,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(stateProvider, composer))
 
     /**
      * The [StateContainer] used to manage state.
      */
-    protected val stateContainer: StateContainer<State> = stateContainer(initialState)
+    protected val stateContainer: StateContainer<State> = stateContainer(composer.provide())
 
+    /**
+     * @see StateHolder.state
+     */
     override val state: StateFlow<State> = stateContainer.state
 
-    /**
-     * Creates a [StateScreenModel] with state provided by a [StateProvider].
-     *
-     * @param stateProvider A provider that supplies the initial state.
-     */
-    public constructor(stateProvider: StateProvider<State>) : this(stateProvider.provide())
-
-    /**
-     * Creates a [StateScreenModel] with a [ComposedStateProvider].
-     *
-     * The composer supplies both the initial state and the composition logic.
-     *
-     * @param composer A provider that supplies the initial state and composition logic.
-     */
-    public constructor(composer: ComposedStateProvider<State>) : this(composer.provide()) {
-        composeState { with(composer) { compose() } }
+    init {
+        stateContainer.compose(composer)
     }
 
     /**

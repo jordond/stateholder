@@ -1,7 +1,7 @@
 package dev.stateholder
 
-import dev.stateholder.internal.DefaultStateContainer
 import dev.stateholder.internal.DefaultStateComposer
+import dev.stateholder.internal.DefaultStateContainer
 import dev.stateholder.provider.ComposedStateProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -171,6 +171,17 @@ public fun <State> StateContainer<State>.compose(
     block: StateComposer<State>.() -> Unit,
 ) {
     DefaultStateComposer(scope, this).apply(block)
+}
+
+/**
+ * Composes state from a [dev.stateholder.provider.ComposedStateProvider].
+ *
+ * @param composeProvider The provider that supplies initial state and composition logic.
+ */
+public fun <State> StateContainer<State>.compose(composeProvider: ComposedStateProvider<State>) {
+    with(composeProvider) {
+        this@compose.compose(this)
+    }
 }
 
 /**

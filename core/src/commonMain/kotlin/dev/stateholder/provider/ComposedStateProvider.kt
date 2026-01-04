@@ -1,6 +1,7 @@
 package dev.stateholder.provider
 
 import dev.stateholder.StateComposer
+import dev.stateholder.StateContainer
 import dev.stateholder.StateProvider
 
 /**
@@ -17,12 +18,11 @@ import dev.stateholder.StateProvider
  *     cartStateProvider: CartStateProvider,
  * ) : ComposedStateProvider<ShopState> by composedStateProvider(
  *     initialState = ShopState(),
- * ) {
- *     override fun StateComposer<ShopState>.compose() {
+ *     composer = {
  *         userStateProvider into { copy(user = it) }
  *         cartStateProvider into { copy(cart = it) }
  *     }
- * }
+ * )
  *
  * class ShopViewModel @Inject constructor(
  *     composer: ShopStateComposer,
@@ -50,9 +50,9 @@ import dev.stateholder.StateProvider
  */
 public interface ComposedStateProvider<State> : StateProvider<State> {
     /**
-     * Composes the state by wiring up flows using the [dev.stateholder.StateComposer] DSL.
+     * Composes the state by wiring up flows using the [StateComposer] DSL.
      *
-     * This method is called when the provider is used to create a [dev.stateholder.StateContainer].
+     * This method is called when the provider is used to create a [StateContainer].
      */
     public fun StateComposer<State>.compose()
 }
@@ -70,23 +70,24 @@ public interface ComposedStateProvider<State> : StateProvider<State> {
  *     private val cartStateProvider: CartStateProvider,
  * ) : ComposedStateProvider<ShopState> by composedStateProvider(
  *     initialState = ShopState(),
- * ) {
- *     override fun StateComposer<ShopState>.compose() {
+ *     composer = {
  *         userStateProvider into { copy(user = it) }
  *         cartStateProvider into { copy(cart = it) }
  *     }
- * }
+ * )
  * ```
  *
  * @param State The type of state.
  * @param initialState The initial state value returned by [ComposedStateProvider.provide].
+ * @param composer The DSL for composing state from flows.
  * @return A [ComposedStateProvider] that can be used with delegation.
  */
 public fun <State> composedStateProvider(
     initialState: State,
+    composer: StateComposer<State>.() -> Unit = {},
 ): ComposedStateProvider<State> = object : ComposedStateProvider<State> {
     override fun provide(): State = initialState
-    override fun StateComposer<State>.compose() {}
+    override fun StateComposer<State>.compose() = composer()
 }
 
 /**
@@ -103,21 +104,22 @@ public fun <State> composedStateProvider(
  *     private val cartStateProvider: CartStateProvider,
  * ) : ComposedStateProvider<ShopState> by composedStateProvider(
  *     provider = shopStateProvider,
- * ) {
- *     override fun StateComposer<ShopState>.compose() {
+ *     composer = {
  *         userStateProvider into { copy(user = it) }
  *         cartStateProvider into { copy(cart = it) }
  *     }
- * }
+ * )
  * ```
  *
  * @param State The type of state.
  * @param provider A [StateProvider] that supplies the initial state.
+ * @param composer The DSL for composing state from flows.
  * @return A [ComposedStateProvider] that can be used with delegation.
  */
 public fun <State> composedStateProvider(
     provider: StateProvider<State>,
+    composer: StateComposer<State>.() -> Unit = {},
 ): ComposedStateProvider<State> = object : ComposedStateProvider<State> {
     override fun provide(): State = provider.provide()
-    override fun StateComposer<State>.compose() {}
+    override fun StateComposer<State>.compose() = composer()
 }

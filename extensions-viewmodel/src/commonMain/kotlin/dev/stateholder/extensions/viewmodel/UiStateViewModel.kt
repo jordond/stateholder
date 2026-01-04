@@ -1,9 +1,11 @@
 package dev.stateholder.extensions.viewmodel
 
 import dev.stateholder.EventHolder
+import dev.stateholder.StateComposer
 import dev.stateholder.StateProvider
 import dev.stateholder.eventHolder
 import dev.stateholder.provider.ComposedStateProvider
+import dev.stateholder.provider.composedStateProvider
 
 /**
  * A [StateViewModel] that also supports one-time UI events via [EventHolder].
@@ -12,47 +14,64 @@ import dev.stateholder.provider.ComposedStateProvider
  * such as showing snackbars, navigating, or displaying dialogs. Events are queued and
  * must be explicitly handled to be removed from the queue.
  *
- * Example using composeState:
+ * There are several ways to construct a UiStateViewModel:
  *
+ * **Simple initial state:**
  * ```
- * data class FormState(val isLoading: Boolean = false)
- *
- * sealed interface FormEvent {
- *     data class ShowError(val message: String) : FormEvent
- *     data object NavigateToSuccess : FormEvent
- * }
- *
- * class FormViewModel @Inject constructor(
- *     private val formRepository: FormRepository,
- * ) : UiStateViewModel<FormState, FormEvent>(FormState()) {
- *
- *     init {
- *         composeState {
- *             formRepository.formData into { copy(data = it) }
- *         }
- *     }
- *
+ * class FormViewModel : UiStateViewModel<FormState, FormEvent>(FormState()) {
  *     fun submit() {
- *         updateState { it.copy(isLoading = true) }
- *         // ... perform submission
  *         emit(FormEvent.NavigateToSuccess)
  *     }
  * }
  * ```
  *
- * Example using ComposedStateProvider:
+ * **With inline composition:**
+ * ```
+ * class FormViewModel @Inject constructor(
+ *     private val formRepository: FormRepository,
+ * ) : UiStateViewModel<FormState, FormEvent>(
+ *     initialState = FormState(),
+ *     composer = {
+ *         formRepository.formData into { copy(data = it) }
+ *     },
+ * ) {
+ *     fun submit() {
+ *         updateState { it.copy(isLoading = true) }
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
  *
+ * **With ComposedStateProvider (for dependency injection):**
  * ```
  * class FormViewModel @Inject constructor(
  *     composer: FormStateComposer,
  * ) : UiStateViewModel<FormState, FormEvent>(composer) {
- *
  *     fun submit() {
  *         emit(FormEvent.NavigateToSuccess)
  *     }
  * }
+ * ```
  *
- * // In your UI:
+ * **With a StateProvider:**
+ * ```
+ * class FormViewModel @Inject constructor(
+ *     formStateProvider: FormStateProvider,
+ *     private val formRepository: FormRepository,
+ * ) : UiStateViewModel<FormState, FormEvent>(
+ *     stateProvider = formStateProvider,
+ *     composer = {
+ *         formRepository.formData into { copy(data = it) }
+ *     },
+ * ) {
+ *     fun submit() {
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
+ *
+ * **Handling events in your UI:**
+ * ```
  * @Composable
  * fun FormScreen(viewModel: FormViewModel) {
  *     HandleEvents(viewModel) { event ->
@@ -61,33 +80,92 @@ import dev.stateholder.provider.ComposedStateProvider
  *             FormEvent.NavigateToSuccess -> navigator.push(SuccessScreen)
  *         }
  *     }
- *     // ... rest of UI
  * }
  * ```
  *
  * @param State The type of state managed by this ViewModel.
  * @param Event The type of one-time events emitted by this ViewModel.
- * @param initialState The initial state value.
+ * @param composer The provider that supplies initial state and composition logic.
  */
 public abstract class UiStateViewModel<State, Event>(
-    initialState: State,
-) : StateViewModel<State>(initialState), EventHolder<Event> by eventHolder() {
+    composer: ComposedStateProvider<State>,
+) : StateViewModel<State>(composer), EventHolder<Event> by eventHolder() {
+    /**
+     * Creates a [UiStateViewModel] with the given initial state.
+     *
+     * Example:
+     *
+     * ```
+     * class FormViewModel : UiStateViewModel<FormState, FormEvent>(FormState())
+     * ```
+     *
+     * @param initialState The initial state.
+     */
+    public constructor(initialState: State) : this(composedStateProvider(initialState))
 
     /**
-     * Creates a [UiStateViewModel] with state provided by a [StateProvider].
+     * Creates a [UiStateViewModel] with the given initial state and composition logic.
      *
-     * @param stateProvider A provider that supplies the initial state.
+     * Example:
+     *
+     * ```
+     * class FormViewModel @Inject constructor(
+     *     private val formRepository: FormRepository,
+     * ) : UiStateViewModel<FormState, FormEvent>(
+     *     initialState = FormState(),
+     *     composer = {
+     *         formRepository.formData into { copy(data = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param initialState The initial state.
+     * @param composer The DSL for composing state from flows.
      */
-    public constructor(stateProvider: StateProvider<State>) : this(stateProvider.provide())
+    public constructor(
+        initialState: State,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(initialState, composer))
 
     /**
-     * Creates a [UiStateViewModel] with a [ComposedStateProvider].
+     * Creates a [UiStateViewModel] with the given [StateProvider].
      *
-     * The composer supplies both the initial state and the composition logic.
+     * Example:
      *
-     * @param composer A provider that supplies the initial state and composition logic.
+     * ```
+     * class FormViewModel @Inject constructor(
+     *     formStateProvider: FormStateProvider,
+     * ) : UiStateViewModel<FormState, FormEvent>(formStateProvider)
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
      */
-    public constructor(composer: ComposedStateProvider<State>) : this(composer.provide()) {
-        composeState { with(composer) { compose() } }
-    }
+    public constructor(stateProvider: StateProvider<State>) : this(
+        composedStateProvider(stateProvider)
+    )
+
+    /**
+     * Creates a [UiStateViewModel] with the given [StateProvider] and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class FormViewModel @Inject constructor(
+     *     formStateProvider: FormStateProvider,
+     *     private val formRepository: FormRepository,
+     * ) : UiStateViewModel<FormState, FormEvent>(
+     *     stateProvider = formStateProvider,
+     *     composer = {
+     *         formRepository.formData into { copy(data = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     * @param composer The DSL for composing state from flows.
+     */
+    public constructor(
+        stateProvider: StateProvider<State>,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(stateProvider, composer))
 }

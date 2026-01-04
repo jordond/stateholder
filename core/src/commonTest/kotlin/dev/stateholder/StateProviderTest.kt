@@ -2,6 +2,7 @@ package dev.stateholder
 
 import app.cash.turbine.test
 import dev.stateholder.provider.FlowStateProvider
+import dev.stateholder.provider.flowStateProvider
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest

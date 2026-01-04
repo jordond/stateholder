@@ -15,7 +15,6 @@ internal class DefaultStateComposer<State>(
     private val scope: CoroutineScope,
     private val container: StateContainer<State>,
 ) : StateComposer<State> {
-
     override fun <T> slice(
         flow: Flow<T>,
         merge: suspend State.(T) -> State,

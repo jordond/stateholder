@@ -53,6 +53,18 @@ public fun <State> provideState(
     block: () -> State,
 ): StateProvider<State> = StateProvider { block() }
 
+
+/**
+ * Convenience function to create a simple [StateProvider] with a value.
+ *
+ * @see [provideState]
+ * @see [StateProvider]
+ * @param[State] The type of the state.
+ * @param[value] The state to provide.
+ * @return A [StateProvider] that provides the [value].
+ */
+public fun <State> stateProvider(value: State): StateProvider<State> = provideState(value)
+
 /**
  * Convenience function to create a simple [StateProvider] with a value.
  *
