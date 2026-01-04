@@ -2,13 +2,13 @@ package dev.stateholder.extensions.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.stateholder.provider.ComposedStateProvider
+import dev.stateholder.compose
+import dev.stateholder.StateComposer
 import dev.stateholder.StateContainer
 import dev.stateholder.StateHolder
 import dev.stateholder.StateProvider
 import dev.stateholder.stateContainer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -17,79 +17,92 @@ import kotlinx.coroutines.flow.StateFlow
  * Extend this class to create ViewModels with built-in state management. The state is
  * exposed via the [StateHolder] interface, allowing UI components to collect state updates.
  *
- * Example:
+ * Example using composeState:
  *
  * ```
- * data class CounterState(val count: Int = 0)
+ * class CounterViewModel @Inject constructor(
+ *     private val counterRepository: CounterRepository,
+ * ) : StateViewModel<CounterState>(CounterState()) {
  *
- * class CounterViewModel : StateViewModel<CounterState>(CounterState()) {
+ *     init {
+ *         composeState {
+ *             counterRepository.count into { copy(count = it) }
+ *         }
+ *     }
+ *
  *     fun increment() {
  *         updateState { it.copy(count = it.count + 1) }
  *     }
  * }
+ * ```
  *
- * // In your UI:
- * @Composable
- * fun CounterScreen(viewModel: CounterViewModel) {
- *     val state by viewModel.collectAsState()
- *     Button(onClick = { viewModel.increment() }) {
- *         Text("Count: ${state.count}")
+ * Example using ComposedStateProvider:
+ *
+ * ```
+ * class CounterViewModel @Inject constructor(
+ *     composer: CounterStateComposer,
+ * ) : StateViewModel<CounterState>(composer) {
+ *
+ *     fun increment() {
+ *         updateState { it.copy(count = it.count + 1) }
  *     }
  * }
  * ```
  *
  * @param State The type of state managed by this ViewModel.
- * @param stateContainer The [StateContainer] used to manage state.
+ * @param initialState The initial state value.
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public abstract class StateViewModel<State>(
-    protected val stateContainer: StateContainer<State>,
+    initialState: State,
 ) : ViewModel(), StateHolder<State> {
+
+    /**
+     * The [StateContainer] used to manage state.
+     */
+    protected val stateContainer: StateContainer<State> = stateContainer(initialState)
+
+    override val state: StateFlow<State> = stateContainer.state
 
     /**
      * Creates a [StateViewModel] with state provided by a [StateProvider].
      *
      * @param stateProvider A provider that supplies the initial state.
      */
-    public constructor(stateProvider: StateProvider<State>) : this(stateContainer(stateProvider))
+    public constructor(stateProvider: StateProvider<State>) : this(stateProvider.provide())
 
     /**
-     * Creates a [StateViewModel] with the given initial state.
+     * Creates a [StateViewModel] with a [ComposedStateProvider].
      *
-     * @param initialState The initial state value.
+     * The composer supplies both the initial state and the composition logic.
+     *
+     * @param composer A provider that supplies the initial state and composition logic.
      */
-    public constructor(initialState: State) : this(stateContainer(initialState))
-
-    override val state: StateFlow<State> = stateContainer.state
-
-    /**
-     * Merges emissions from this [Flow] into the current state.
-     *
-     * Each emission triggers [block] with the current state and emitted value,
-     * and the returned state becomes the new state.
-     *
-     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
-     * @param block A suspend function that combines the current state with the emitted value.
-     * @return A [Job] that can be used to cancel the collection.
-     */
-    protected fun <T> Flow<T>.mergeState(
-        scope: CoroutineScope = viewModelScope,
-        block: suspend (state: State, value: T) -> State,
-    ): Job {
-        return stateContainer.merge(this, scope, block)
+    public constructor(composer: ComposedStateProvider<State>) : this(composer.provide()) {
+        composeState { with(composer) { compose() } }
     }
 
     /**
-     * Merges state from another [StateHolder] into this ViewModel's state.
+     * Composes state from multiple reactive sources using the [StateComposer] DSL.
      *
-     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
-     * @param block A suspend function that combines the current state with the other holder's state.
-     * @return A [Job] that can be used to cancel the collection.
+     * Call this in your `init` block to wire up flows that should update portions of your state.
+     *
+     * Example:
+     *
+     * ```
+     * init {
+     *     composeState {
+     *         userRepository.currentUser into { copy(user = it) }
+     *         cartRepository.cart into { copy(cart = it) }
+     *     }
+     * }
+     * ```
+     *
+     * @param composer The DSL for composing state from flows.
      */
-    protected fun <T> StateHolder<T>.mergeState(
-        scope: CoroutineScope = viewModelScope,
-        block: suspend (state: State, value: T) -> State,
-    ): Job = state.mergeState(scope, block)
+    protected fun composeState(composer: StateComposer<State>.() -> Unit) {
+        stateContainer.compose(viewModelScope, composer)
+    }
 
     /**
      * Updates the current state using the provided transformation [block].

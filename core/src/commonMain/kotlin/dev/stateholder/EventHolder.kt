@@ -1,7 +1,33 @@
 package dev.stateholder
 
+import dev.stateholder.internal.DefaultEventHolder
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.StateFlow
+
+/**
+ * Interface for emitting one-time events to be handled by the UI layer.
+ *
+ * @param Event The type of events that can be emitted.
+ */
+public interface EventEmitter<Event> {
+    /**
+     * Emits a one-time [event] to be handled by the UI layer.
+     *
+     * The event is added to the queue and remains until [EventHolder.handle] is called.
+     *
+     * @param event The event to emit.
+     */
+    public fun emit(event: Event)
+
+    /**
+     * Emits multiple events at once.
+     *
+     * @param events The events to emit.
+     */
+    public fun emit(vararg events: Event)
+
+    public fun emit(events: Iterable<Event>)
+}
 
 /**
  * Exposes an [events] flow and a [handle] function for managing one-time events.
@@ -13,12 +39,10 @@ import kotlinx.coroutines.flow.StateFlow
  * Example:
  *
  * ```
- * class MyViewModel(
- *     private val container: StateContainer<MyState>,
- * ) : EventHolder<MyEvent> by container.asEventHolder() {
+ * class MyViewModel : ViewModel(), EventHolder<MyEvent> by eventHolder() {
  *
  *     fun doSomething() {
- *         container.emit(MyEvent.ShowToast("Hello!"))
+ *         emit(MyEvent.ShowToast("Hello!"))
  *     }
  * }
  *
@@ -41,7 +65,7 @@ import kotlinx.coroutines.flow.StateFlow
  * }
  * ```
  */
-public interface EventHolder<Event> {
+public interface EventHolder<Event> : EventEmitter<Event> {
     /**
      * A [StateFlow] containing the current list of unhandled events.
      */
@@ -51,6 +75,36 @@ public interface EventHolder<Event> {
      * Marks the given [event] as handled, removing it from the [events] list.
      *
      * Call this after processing an event to prevent it from being processed again.
+     *
+     * Note: This uses reference equality first (`===`), then falls back to value equality (`==`).
+     * This ensures correct behavior when handling duplicate events.
      */
     public fun handle(event: Event)
+
+    /**
+     * Marks all events as handled, clearing the [events] list.
+     */
+    public fun handleAll()
 }
+
+/**
+ * Creates an [EventHolder] for use with delegation.
+ *
+ * This helper provides a complete implementation of [EventHolder] that can be
+ * delegated to in your ViewModel or ScreenModel.
+ *
+ * Example:
+ *
+ * ```
+ * class MyViewModel : ViewModel(), EventHolder<MyEvent> by eventHolder() {
+ *
+ *     fun doSomething() {
+ *         emit(MyEvent.ShowToast("Hello!"))
+ *     }
+ * }
+ * ```
+ *
+ * @param Event The type of events.
+ * @return An [EventHolder] implementation that can be used with delegation.
+ */
+public fun <Event> eventHolder(): EventHolder<Event> = DefaultEventHolder()

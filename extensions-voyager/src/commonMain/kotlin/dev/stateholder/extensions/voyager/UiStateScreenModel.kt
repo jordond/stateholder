@@ -1,12 +1,9 @@
 package dev.stateholder.extensions.voyager
 
+import dev.stateholder.provider.ComposedStateProvider
 import dev.stateholder.EventHolder
-import dev.stateholder.StateContainer
 import dev.stateholder.StateProvider
-import dev.stateholder.stateContainer
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.flow.StateFlow
+import dev.stateholder.eventHolder
 
 /**
  * A [StateScreenModel] that also supports one-time UI events via [EventHolder].
@@ -15,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
  * such as showing snackbars, navigating, or displaying dialogs. Events are queued and
  * must be explicitly handled to be removed from the queue.
  *
- * Example:
+ * Example using composeState:
  *
  * ```
  * data class FormState(val isLoading: Boolean = false)
@@ -25,10 +22,32 @@ import kotlinx.coroutines.flow.StateFlow
  *     data object NavigateToSuccess : FormEvent
  * }
  *
- * class FormScreenModel : UiStateScreenModel<FormState, FormEvent>(FormState()) {
+ * class FormScreenModel @Inject constructor(
+ *     private val formRepository: FormRepository,
+ * ) : UiStateScreenModel<FormState, FormEvent>(FormState()) {
+ *
+ *     init {
+ *         composeState {
+ *             formRepository.formData into { copy(data = it) }
+ *         }
+ *     }
+ *
  *     fun submit() {
  *         updateState { it.copy(isLoading = true) }
  *         // ... perform submission
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
+ *
+ * Example using ComposedStateProvider:
+ *
+ * ```
+ * class FormScreenModel @Inject constructor(
+ *     composer: FormStateComposer,
+ * ) : UiStateScreenModel<FormState, FormEvent>(composer) {
+ *
+ *     fun submit() {
  *         emit(FormEvent.NavigateToSuccess)
  *     }
  * }
@@ -53,46 +72,27 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * @param State The type of state managed by this ScreenModel.
  * @param Event The type of one-time events emitted by this ScreenModel.
- * @param stateContainer The [StateContainer] used to manage state.
+ * @param initialState The initial state value.
  */
 public abstract class UiStateScreenModel<State, Event>(
-    stateContainer: StateContainer<State>,
-) : StateScreenModel<State>(stateContainer), EventHolder<Event> {
+    initialState: State,
+) : StateScreenModel<State>(initialState), EventHolder<Event> by eventHolder() {
 
     /**
      * Creates a [UiStateScreenModel] with state provided by a [StateProvider].
      *
      * @param stateProvider A provider that supplies the initial state.
      */
-    public constructor(stateProvider: StateProvider<State>) : this(stateContainer(stateProvider))
+    public constructor(stateProvider: StateProvider<State>) : this(stateProvider.provide())
 
     /**
-     * Creates a [UiStateScreenModel] with the given initial state.
+     * Creates a [UiStateScreenModel] with a [ComposedStateProvider].
      *
-     * @param initialState The initial state value.
-     */
-    public constructor(initialState: State) : this(stateContainer(initialState))
-
-    /**
-     * Internal container for managing the event queue.
-     */
-    protected val eventContainer: StateContainer<PersistentList<Event>> =
-        stateContainer(persistentListOf())
-
-    public override val events: StateFlow<PersistentList<Event>> = eventContainer.state
-
-    override fun handle(event: Event) {
-        eventContainer.update { it.remove(event) }
-    }
-
-    /**
-     * Emits a one-time [event] to be handled by the UI layer.
+     * The composer supplies both the initial state and the composition logic.
      *
-     * The event is added to the queue and remains until [handle] is called.
-     *
-     * @param event The event to emit.
+     * @param composer A provider that supplies the initial state and composition logic.
      */
-    protected fun emit(event: Event) {
-        eventContainer.update { it.add(event) }
+    public constructor(composer: ComposedStateProvider<State>) : this(composer.provide()) {
+        composeState { with(composer) { compose() } }
     }
 }

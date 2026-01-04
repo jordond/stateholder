@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import dev.stateholder.EventHolder
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -82,6 +83,9 @@ public fun <Event> HandleEvents(
  * and optionally calls [handle] to mark the event as processed. The [LaunchedEffect]
  * is keyed on [events], so it re-runs whenever the event list changes.
  *
+ * Events are tracked by referential identity to prevent re-processing if composition
+ * runs before [handle] updates the state.
+ *
  * @param events The persistent list of events to process.
  * @param handle Optional callback invoked after [onEvent] to mark the event as handled.
  * @param onEvent Suspend function invoked for each event.
@@ -92,13 +96,30 @@ public fun <Event> HandleEvents(
     handle: ((Event) -> Unit)? = null,
     onEvent: suspend (Event) -> Unit,
 ) {
+    // Track processed events by identity to prevent re-processing if composition
+    // runs before handle() updates the state. Using a plain set since we only
+    // access it within LaunchedEffect, not during composition.
+    val processedEvents = remember { mutableSetOf<Any?>() }
+    val currentOnEvent by rememberUpdatedState(onEvent)
+    val currentHandle by rememberUpdatedState(handle)
+
     LaunchedEffect(events) {
         events.forEach { event ->
-            onEvent(event)
-
-            if (handle != null) {
-                handle(event)
+            // Skip if already processed (using identity check)
+            if (processedEvents.any { it === event }) {
+                return@forEach
             }
+
+            // Mark as processed before calling onEvent to prevent races
+            processedEvents.add(event)
+
+            currentOnEvent(event)
+            currentHandle?.invoke(event)
+        }
+
+        // Clean up: remove events that are no longer in the list
+        processedEvents.removeAll { processed ->
+            events.none { it === processed }
         }
     }
 }
