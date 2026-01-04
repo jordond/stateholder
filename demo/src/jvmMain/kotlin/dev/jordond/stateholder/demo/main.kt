@@ -1,6 +1,7 @@
+package dev.jordond.stateholder.demo
+
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import dev.jordond.stateholder.demo.App
 
 fun main() = application {
     Window(

@@ -24,7 +24,6 @@ kotlin {
     jvm()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { target ->
@@ -50,26 +49,27 @@ kotlin {
             implementation(projects.extensionsCompose)
             implementation(projects.extensionsVoyager)
 
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.materialIconsExtended)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.navigation)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.ui.tooling.preview)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.collections)
             implementation(libs.kermit)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenModel)
         }
 
         androidMain.dependencies {
-            implementation(compose.preview)
             implementation(libs.androidx.core)
             implementation(libs.androidx.activity)
             implementation(libs.androidx.activity.compose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.kotlinx.coroutines.guava)
+            implementation(libs.compose.ui.tooling)
         }
 
         jvmMain.dependencies {
@@ -80,7 +80,10 @@ kotlin {
 }
 
 android {
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.android.compileSdk
+            .get()
+            .toInt()
     namespace = "dev.jordond.stateholder.demo"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -88,13 +91,25 @@ android {
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
-        applicationId = libs.versions.app.name.get()
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.app.code.get().toInt()
-        versionName = libs.versions.app.version.get()
+        applicationId =
+            libs.versions.app.name
+                .get()
+        minSdk =
+            libs.versions.android.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.android.targetSdk
+                .get()
+                .toInt()
+        versionCode =
+            libs.versions.app.code
+                .get()
+                .toInt()
+        versionName =
+            libs.versions.app.version
+                .get()
     }
-
 
     buildTypes {
         release {
