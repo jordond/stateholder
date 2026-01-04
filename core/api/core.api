@@ -5,13 +5,31 @@ public final class dev/stateholder/CollectKt {
 	public static synthetic fun collectState$default (Ldev/stateholder/StateHolder;Landroidx/lifecycle/LifecycleOwner;Lkotlin/jvm/functions/Function1;Landroidx/lifecycle/Lifecycle$State;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
 }
 
-public abstract interface class dev/stateholder/EventHolder {
-	public abstract fun getEvents ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun handle (Ljava/lang/Object;)V
+public abstract interface class dev/stateholder/EventEmitter {
+	public abstract fun emit (Ljava/lang/Iterable;)V
+	public abstract fun emit (Ljava/lang/Object;)V
+	public abstract fun emit ([Ljava/lang/Object;)V
 }
 
-public abstract interface class dev/stateholder/FlowStateProvider : dev/stateholder/StateProvider {
-	public abstract fun states ()Lkotlinx/coroutines/flow/Flow;
+public abstract interface class dev/stateholder/EventHolder : dev/stateholder/EventEmitter {
+	public abstract fun getEvents ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun handle (Ljava/lang/Object;)V
+	public abstract fun handleAll ()V
+}
+
+public final class dev/stateholder/EventHolderKt {
+	public static final fun eventHolder ()Ldev/stateholder/EventHolder;
+}
+
+public abstract interface class dev/stateholder/StateComposer {
+	public abstract fun into (Ldev/stateholder/StateContainer;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun into (Ldev/stateholder/StateHolder;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun into (Ldev/stateholder/provider/FlowStateProvider;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun into (Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun slice (Ldev/stateholder/StateContainer;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun slice (Ldev/stateholder/StateHolder;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun slice (Ldev/stateholder/provider/FlowStateProvider;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public abstract fun slice (Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 }
 
 public abstract interface class dev/stateholder/StateContainer {
@@ -32,9 +50,14 @@ public final class dev/stateholder/StateContainer$DefaultImpls {
 }
 
 public final class dev/stateholder/StateContainerKt {
+	public static final fun compose (Ldev/stateholder/StateContainer;Ldev/stateholder/provider/ComposedStateProvider;)V
+	public static final fun compose (Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;)V
 	public static final fun mergeWithState (Lkotlinx/coroutines/flow/Flow;Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 	public static final fun stateContainer (Ldev/stateholder/StateProvider;)Ldev/stateholder/StateContainer;
 	public static final fun stateContainer (Ljava/lang/Object;)Ldev/stateholder/StateContainer;
+	public static final fun stateContainer (Lkotlinx/coroutines/CoroutineScope;Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/StateContainer;
+	public static final fun stateContainer (Lkotlinx/coroutines/CoroutineScope;Ldev/stateholder/provider/ComposedStateProvider;)Ldev/stateholder/StateContainer;
+	public static final fun stateContainer (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/StateContainer;
 }
 
 public abstract interface class dev/stateholder/StateHolder {
@@ -57,5 +80,27 @@ public final class dev/stateholder/StateProviderKt {
 	public static final fun asStateProvider (Ljava/lang/Object;)Ldev/stateholder/StateProvider;
 	public static final fun provideState (Ljava/lang/Object;)Ldev/stateholder/StateProvider;
 	public static final fun provideState (Lkotlin/jvm/functions/Function0;)Ldev/stateholder/StateProvider;
+	public static final fun stateProvider (Ljava/lang/Object;)Ldev/stateholder/StateProvider;
+	public static final fun stateProvider (Lkotlin/jvm/functions/Function0;)Ldev/stateholder/StateProvider;
+}
+
+public abstract interface class dev/stateholder/provider/ComposedStateProvider : dev/stateholder/StateProvider {
+	public abstract fun compose (Ldev/stateholder/StateComposer;)V
+}
+
+public final class dev/stateholder/provider/ComposedStateProviderKt {
+	public static final fun composedStateProvider (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/provider/ComposedStateProvider;
+	public static final fun composedStateProvider (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/provider/ComposedStateProvider;
+	public static synthetic fun composedStateProvider$default (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/stateholder/provider/ComposedStateProvider;
+	public static synthetic fun composedStateProvider$default (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/stateholder/provider/ComposedStateProvider;
+}
+
+public abstract interface class dev/stateholder/provider/FlowStateProvider : dev/stateholder/StateProvider {
+	public abstract fun states ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/stateholder/provider/FlowStateProviderKt {
+	public static final fun flowStateProvider (Ldev/stateholder/StateProvider;Lkotlinx/coroutines/flow/Flow;)Ldev/stateholder/provider/FlowStateProvider;
+	public static final fun flowStateProvider (Ljava/lang/Object;Lkotlinx/coroutines/flow/Flow;)Ldev/stateholder/provider/FlowStateProvider;
 }
 
