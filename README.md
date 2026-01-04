@@ -17,8 +17,22 @@ and `StateFlow`.
 
 You can view the KDocs at [docs.stateholder.dev](https://docs.stateholder.dev).
 
+## Terminology
+
+| Interface | Purpose |
+|-----------|---------|
+| `StateHolder` | Read-only state exposure via `StateFlow`. Pass this to UI layers. |
+| `StateContainer` | Read/write state management. Use internally to `update` state. |
+| `StateProvider` | Factory for initial state. Enables lazy init and DI. |
+| `FlowStateProvider` | Provides initial state + a `Flow` of updates. For reactive data sources. |
+| `ComposedStateProvider` | Combines initial state + composition logic. Wire multiple flows into state. |
+| `StateComposer` | DSL for merging flows into state using `into` syntax. |
+| `EventHolder` | One-time event queue for UI side effects (toasts, navigation). |
+| `Dispatcher` | Single callback for all UI actions. Replaces multiple lambdas. |
+
 ## Table of Contents
 
+- [Terminology](#terminology)
 - [Motivation](#motivation)
 - [Modules](#modules)
 - [Setup](#setup)
@@ -101,20 +115,6 @@ kotlin {
             }
         }
     }
-}
-```
-
-### Android
-
-For an Android-only project, add the dependencies to your app-level `build.gradle.kts`:
-
-```kotlin
-dependencies {
-    implementation("dev.stateholder:core:2.0.0")
-    implementation("dev.stateholder:dispatcher:2.0.0")
-    implementation("dev.stateholder:extensions-compose:2.0.0")
-    implementation("dev.stateholder:dispatcher-compose:2.0.0")
-    implementation("dev.stateholder:extensions-viewmodel:2.0.0")
 }
 ```
 

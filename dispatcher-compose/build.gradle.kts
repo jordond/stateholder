@@ -31,7 +31,6 @@ kotlin {
     macosArm64()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { target ->
@@ -43,7 +42,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.dispatcher)
-            implementation(compose.runtime)
+            implementation(libs.compose.runtime)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
