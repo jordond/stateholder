@@ -32,10 +32,13 @@ develocity {
 }
 
 kover {
+    enableCoverage()
     reports {
         excludesAnnotatedBy.add("KoverIgnore")
         excludedClasses.add($$$"*$$inlined$*")
+        excludedClasses.add($$$"Dispatcher$DefaultImpls")
     }
+    skipProjects("demo")
 }
 
 rootProject.name = "StateHolder"
