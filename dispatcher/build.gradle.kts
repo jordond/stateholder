@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.dokka)
     alias(libs.plugins.publish)
-    alias(libs.plugins.kotlinx.kover)
 }
 
 kotlin {

@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 
 plugins {
     id("com.gradle.develocity") version "4.3"
+    id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.4"
 }
 
 develocity {
@@ -27,6 +28,13 @@ develocity {
         publishing.onlyIf { context ->
             context.buildResult.failures.isNotEmpty() && !System.getenv("CI").isNullOrEmpty()
         }
+    }
+}
+
+kover {
+    reports {
+        excludesAnnotatedBy.add("KoverIgnore")
+        excludedClasses.add($$$"*$$inlined$*")
     }
 }
 
@@ -40,4 +48,5 @@ include(
     ":extensions-viewmodel",
     ":extensions-voyager",
 )
+
 include(":demo")

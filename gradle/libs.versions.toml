@@ -11,7 +11,6 @@ kotlinx-atomicfu = "0.29.0"
 kotlinx-collections = "0.4.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1-0.6.x-compat"
-kotlinx-kover = "0.9.4"
 versions = "0.53.0"
 compose-multiplatform = "1.9.3"
 compose-runtime = "1.10.0"
@@ -61,7 +60,6 @@ android-library = { id = "com.android.kotlin.multiplatform.library", version.ref
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 dependencies = { id = "com.github.ben-manes.versions", version.ref = "versions" }
 binaryCompatibility = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibility" }
-kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 

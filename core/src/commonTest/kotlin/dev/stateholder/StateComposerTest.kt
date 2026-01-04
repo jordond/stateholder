@@ -8,7 +8,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
 class StateComposerTest {
-
     data class TestState(
         val name: String = "",
         val count: Int = 0,
@@ -17,7 +16,7 @@ class StateComposerTest {
 
     @Test
     fun shouldCreateContainerWithCorrectInitialState() = runTest {
-        val container = stateContainer(this, TestState(name = "initial")) {}
+        val container = stateContainer(backgroundScope, TestState(name = "initial")) {}
 
         container.state.test {
             awaitItem() shouldBe TestState(name = "initial")
@@ -29,7 +28,7 @@ class StateComposerTest {
     fun shouldMergeFlowUsingSlice() = runTest {
         val nameFlow = MutableStateFlow("Alice")
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             slice(nameFlow) { copy(name = it) }
         }
 
@@ -48,7 +47,7 @@ class StateComposerTest {
     fun shouldMergeFlowUsingIntoInfix() = runTest {
         val countFlow = MutableStateFlow(42)
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             countFlow into { copy(count = it) }
         }
 
@@ -69,7 +68,7 @@ class StateComposerTest {
         val countFlow = MutableStateFlow(10)
         val activeFlow = MutableStateFlow(true)
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             nameFlow into { copy(name = it) }
             countFlow into { copy(count = it) }
             activeFlow into { copy(active = it) }
@@ -100,7 +99,7 @@ class StateComposerTest {
 
         lateinit var nameJob: kotlinx.coroutines.Job
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             nameJob = nameFlow into { copy(name = it) }
             countFlow into { copy(count = it) }
         }
@@ -127,7 +126,7 @@ class StateComposerTest {
         val flow = MutableStateFlow("test")
         val provider = flowStateProvider(initialState = "initial", flow = flow)
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             slice(provider) { copy(name = it) }
         }
 
@@ -147,7 +146,7 @@ class StateComposerTest {
         val flow = MutableStateFlow(99)
         val provider = flowStateProvider(initialState = 0, flow = flow)
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             provider into { copy(count = it) }
         }
 
@@ -163,7 +162,7 @@ class StateComposerTest {
     fun shouldMergeStateContainer() = runTest {
         val otherContainer = stateContainer(42)
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             slice(otherContainer) { copy(count = it) }
         }
 
@@ -183,7 +182,7 @@ class StateComposerTest {
         val otherContainer = stateContainer(true)
         val holder: StateHolder<Boolean> = otherContainer.asStateHolder()
 
-        val container = stateContainer(this, TestState()) {
+        val container = stateContainer(backgroundScope, TestState()) {
             holder into { copy(active = it) }
         }
 
@@ -203,7 +202,7 @@ class StateComposerTest {
         val provider = provideState { TestState(name = "from provider") }
 
         val container = stateContainer(
-            scope = this,
+            scope = backgroundScope,
             initialStateProvider = provider,
         ) {
             // No slices, just testing provider overload
