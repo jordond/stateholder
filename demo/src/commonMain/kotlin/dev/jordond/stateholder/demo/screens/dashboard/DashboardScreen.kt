@@ -60,12 +60,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
 import dev.jordond.stateholder.demo.data.Task
 import dev.jordond.stateholder.demo.data.TaskPriority
 import dev.jordond.stateholder.demo.data.User
-import dev.jordond.stateholder.demo.di.DI
 import dev.stateholder.dispatcher.Dispatcher
 import dev.stateholder.dispatcher.rememberDebounceDispatcher
 import dev.stateholder.dispatcher.rememberRelay
@@ -75,49 +72,39 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 
-class DashboardScreen : Screen {
-    @Composable
-    override fun Content() {
-        val model =
-            rememberScreenModel {
-                DashboardModel(
-                    stateProvider = DI.dashboardStateProvider,
-                    userRepository = DI.userRepository,
-                    taskRepository = DI.taskRepository,
-                )
-            }
-        val state by model.collectAsState()
-        val snackbarHostState = remember { SnackbarHostState() }
-        var showAddDialog by remember { mutableStateOf(false) }
+@Composable
+fun DashboardScreen(viewModel: DashboardViewModel) {
+    val state by viewModel.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showAddDialog by remember { mutableStateOf(false) }
 
-        HandleEvents(model) { event ->
-            when (event) {
-                is DashboardEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
-                is DashboardEvent.ShowAddTaskDialog -> showAddDialog = true
-                is DashboardEvent.TaskAdded -> showAddDialog = false
+    HandleEvents(viewModel) { event ->
+        when (event) {
+            is DashboardEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
+            is DashboardEvent.ShowAddTaskDialog -> showAddDialog = true
+            is DashboardEvent.TaskAdded -> showAddDialog = false
+        }
+    }
+
+    val dispatcher =
+        rememberDebounceDispatcher<DashboardAction>(debounce = 100L) { action ->
+            when (action) {
+                is DashboardAction.Login -> viewModel.login()
+                is DashboardAction.Logout -> viewModel.logout()
+                is DashboardAction.ToggleTask -> viewModel.toggleTaskComplete(action.taskId)
+                is DashboardAction.DeleteTask -> viewModel.deleteTask(action.taskId)
+                is DashboardAction.AddTask -> viewModel.addTask(action.title, action.priority)
+                is DashboardAction.ShowAddTaskDialog -> viewModel.showAddTaskDialog()
             }
         }
 
-        val dispatcher =
-            rememberDebounceDispatcher<DashboardAction>(debounce = 100L) { action ->
-                when (action) {
-                    is DashboardAction.Login -> model.login()
-                    is DashboardAction.Logout -> model.logout()
-                    is DashboardAction.ToggleTask -> model.toggleTaskComplete(action.taskId)
-                    is DashboardAction.DeleteTask -> model.deleteTask(action.taskId)
-                    is DashboardAction.AddTask -> model.addTask(action.title, action.priority)
-                    is DashboardAction.ShowAddTaskDialog -> model.showAddTaskDialog()
-                }
-            }
-
-        DashboardContent(
-            state = state,
-            dispatcher = dispatcher,
-            snackbarHostState = snackbarHostState,
-            showAddDialog = showAddDialog,
-            onDismissDialog = { showAddDialog = false },
-        )
-    }
+    DashboardContent(
+        state = state,
+        dispatcher = dispatcher,
+        snackbarHostState = snackbarHostState,
+        showAddDialog = showAddDialog,
+        onDismissDialog = { showAddDialog = false },
+    )
 }
 
 @Immutable
@@ -485,8 +472,10 @@ private fun AddTaskDialog(
                         readOnly = true,
                         label = { Text("Priority") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                        modifier = Modifier.fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -528,7 +517,7 @@ private val sampleTasks =
             id = "2",
             title = "Write unit tests",
             priority = TaskPriority.Medium,
-            isCompleted = true
+            isCompleted = true,
         ),
         Task(id = "3", title = "Fix critical bug", priority = TaskPriority.Urgent),
         Task(id = "4", title = "Update README", priority = TaskPriority.Low),
@@ -537,17 +526,16 @@ private val sampleTasks =
 @Preview
 @Composable
 private fun DashboardContentPreview() {
-
-
     val state =
         DashboardState(
             user = User(id = "1", name = "Demo User", email = "demo@stateholder.dev"),
             tasks = sampleTasks,
             completedTaskCount = 1,
             pendingTaskCount = 3,
-            urgentTasks = sampleTasks
-                .filter { it.priority == TaskPriority.Urgent }
-                .toPersistentList(),
+            urgentTasks =
+                sampleTasks
+                    .filter { it.priority == TaskPriority.Urgent }
+                    .toPersistentList(),
         )
 
     MaterialTheme {

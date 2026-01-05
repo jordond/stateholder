@@ -1,19 +1,19 @@
 package dev.jordond.stateholder.demo.screens.dashboard
 
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.viewModelScope
 import dev.jordond.stateholder.demo.data.TaskPriority
 import dev.jordond.stateholder.demo.data.TaskRepository
 import dev.jordond.stateholder.demo.data.UserRepository
-import dev.stateholder.extensions.voyager.UiStateScreenModel
+import dev.stateholder.extensions.viewmodel.UiStateViewModel
 import kotlinx.coroutines.launch
 
-class DashboardModel(
+class DashboardViewModel(
     stateProvider: DashboardState.Provider,
     private val userRepository: UserRepository,
     private val taskRepository: TaskRepository,
-) : UiStateScreenModel<DashboardState, DashboardEvent>(stateProvider) {
+) : UiStateViewModel<DashboardState, DashboardEvent>(stateProvider) {
     fun login() {
-        screenModelScope.launch {
+        viewModelScope.launch {
             userRepository.login("demo@stateholder.dev")
             emit(DashboardEvent.ShowSnackbar("Welcome back!"))
         }
@@ -25,13 +25,13 @@ class DashboardModel(
     }
 
     fun toggleTaskComplete(taskId: String) {
-        screenModelScope.launch {
+        viewModelScope.launch {
             taskRepository.toggleComplete(taskId)
         }
     }
 
     fun deleteTask(taskId: String) {
-        screenModelScope.launch {
+        viewModelScope.launch {
             taskRepository.deleteTask(taskId)
             emit(DashboardEvent.ShowSnackbar("Task deleted"))
         }
@@ -45,7 +45,7 @@ class DashboardModel(
             emit(DashboardEvent.ShowSnackbar("Task title cannot be empty"))
             return
         }
-        screenModelScope.launch {
+        viewModelScope.launch {
             taskRepository.addTask(title = title, priority = priority)
             emit(DashboardEvent.ShowSnackbar("Task added"))
             emit(DashboardEvent.TaskAdded)
