@@ -109,9 +109,8 @@ public interface StateContainer<State> {
         /**
          * Create a [StateContainer] with the given [initialStateProvider].
          */
-        internal fun <State> create(
-            initialStateProvider: StateProvider<State>,
-        ): StateContainer<State> = DefaultStateContainer(initialStateProvider)
+        internal fun <State> create(initialStateProvider: StateProvider<State>): StateContainer<State> =
+            DefaultStateContainer(initialStateProvider)
     }
 }
 
@@ -120,18 +119,14 @@ public interface StateContainer<State> {
  *
  * @see [StateContainer]
  */
-public fun <State> stateContainer(
-    provider: StateProvider<State>,
-): StateContainer<State> = StateContainer.create(provider)
+public fun <State> stateContainer(provider: StateProvider<State>): StateContainer<State> = StateContainer.create(provider)
 
 /**
  * Create a [StateContainer] with the given [initialState].
  *
  * @see [StateContainer]
  */
-public fun <State> stateContainer(
-    initialState: State,
-): StateContainer<State> = StateContainer.create(provideState(initialState))
+public fun <State> stateContainer(initialState: State): StateContainer<State> = StateContainer.create(provideState(initialState))
 
 /**
  * Merge this flow with the state container, updating the state based on the provided block.
@@ -176,12 +171,14 @@ public fun <State> StateContainer<State>.compose(
 /**
  * Composes state from a [dev.stateholder.provider.ComposedStateProvider].
  *
+ * @param scope The coroutine scope for collecting flows.
  * @param composeProvider The provider that supplies initial state and composition logic.
  */
-public fun <State> StateContainer<State>.compose(composeProvider: ComposedStateProvider<State>) {
-    with(composeProvider) {
-        this@compose.compose(this)
-    }
+public fun <State> StateContainer<State>.compose(
+    scope: CoroutineScope,
+    composeProvider: ComposedStateProvider<State>,
+) {
+    compose(scope) { with(composeProvider) { compose() } }
 }
 
 /**
@@ -208,9 +205,10 @@ public fun <State> stateContainer(
     scope: CoroutineScope,
     initialState: State,
     composer: StateComposer<State>.() -> Unit,
-): StateContainer<State> = stateContainer(initialState).also {
-    it.compose(scope, composer)
-}
+): StateContainer<State> =
+    stateContainer(initialState).also {
+        it.compose(scope, composer)
+    }
 
 /**
  * Create a [StateContainer] with state from [initialStateProvider] and compose it using the [StateComposer] DSL.
@@ -248,6 +246,7 @@ public fun <State> stateContainer(
 public fun <State> stateContainer(
     scope: CoroutineScope,
     composer: ComposedStateProvider<State>,
-): StateContainer<State> = stateContainer(composer.provide()).also {
-    it.compose(scope) { with(composer) { compose() } }
-}
+): StateContainer<State> =
+    stateContainer(composer.provide()).also {
+        it.compose(scope) { with(composer) { compose() } }
+    }

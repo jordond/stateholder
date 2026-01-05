@@ -36,7 +36,7 @@ class DashboardModel(
     fun deleteTask(taskId: String) {
         viewModelScope.launch {
             taskRepository.deleteTask(taskId)
-            emit(Event.ShowSnackbar("Task deleted"))
+            emit(Event.ShowSnackbar("Task deleted: $taskId"))
         }
     }
 
@@ -50,7 +50,7 @@ class DashboardModel(
         }
         viewModelScope.launch {
             taskRepository.addTask(title = title, priority = priority)
-            emit(Event.ShowSnackbar("Task added"))
+            emit(Event.ShowSnackbar("Task added: $title"))
             emit(Event.TaskAdded)
         }
     }

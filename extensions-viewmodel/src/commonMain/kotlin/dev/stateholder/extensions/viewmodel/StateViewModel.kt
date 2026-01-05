@@ -182,7 +182,7 @@ public abstract class StateViewModel<State>(
     override val state: StateFlow<State> = stateContainer.state
 
     init {
-        stateContainer.compose(composer)
+        stateContainer.compose(viewModelScope, composer)
     }
 
     /**

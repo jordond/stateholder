@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import dev.jordond.stateholder.demo.data.Task
 import dev.jordond.stateholder.demo.data.TaskPriority
 import dev.jordond.stateholder.demo.data.User
@@ -89,6 +90,7 @@ fun DashboardScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     HandleEvents(viewModel) { event ->
+        Logger.e { "EVent: $event" }
         when (event) {
             is Event.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
             is Event.ShowAddTaskDialog -> showAddDialog = true

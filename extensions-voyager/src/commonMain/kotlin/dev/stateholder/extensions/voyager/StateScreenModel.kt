@@ -167,7 +167,7 @@ public abstract class StateScreenModel<State>(
     override val state: StateFlow<State> = stateContainer.state
 
     init {
-        stateContainer.compose(composer)
+        stateContainer.compose(screenModelScope, composer)
     }
 
     /**
