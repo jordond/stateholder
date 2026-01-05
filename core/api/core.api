@@ -91,8 +91,10 @@ public abstract interface class dev/stateholder/provider/ComposedStateProvider :
 public final class dev/stateholder/provider/ComposedStateProviderKt {
 	public static final fun composedStateProvider (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/provider/ComposedStateProvider;
 	public static final fun composedStateProvider (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ldev/stateholder/provider/ComposedStateProvider;
+	public static final fun composedStateProvider (Lkotlin/jvm/functions/Function1;)Ldev/stateholder/provider/ComposedStateProvider;
 	public static synthetic fun composedStateProvider$default (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/stateholder/provider/ComposedStateProvider;
 	public static synthetic fun composedStateProvider$default (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/stateholder/provider/ComposedStateProvider;
+	public static synthetic fun composedStateProvider$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/stateholder/provider/ComposedStateProvider;
 }
 
 public abstract interface class dev/stateholder/provider/FlowStateProvider : dev/stateholder/StateProvider {
@@ -102,5 +104,6 @@ public abstract interface class dev/stateholder/provider/FlowStateProvider : dev
 public final class dev/stateholder/provider/FlowStateProviderKt {
 	public static final fun flowStateProvider (Ldev/stateholder/StateProvider;Lkotlinx/coroutines/flow/Flow;)Ldev/stateholder/provider/FlowStateProvider;
 	public static final fun flowStateProvider (Ljava/lang/Object;Lkotlinx/coroutines/flow/Flow;)Ldev/stateholder/provider/FlowStateProvider;
+	public static final fun flowStateProvider (Lkotlinx/coroutines/flow/Flow;)Ldev/stateholder/provider/FlowStateProvider;
 }
 
