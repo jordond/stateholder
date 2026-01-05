@@ -8,6 +8,5 @@ import dev.stateholder.provider.flowStateProvider
 class UserStateProvider(
     userRepository: UserRepository,
 ) : FlowStateProvider<User?> by flowStateProvider(
-    initialState = null,
     flow = userRepository.currentUser,
 )

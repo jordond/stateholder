@@ -58,9 +58,7 @@ public interface ComposedStateProvider<State> : StateProvider<State> {
 }
 
 /**
- * Creates a [ComposedStateProvider] for use with delegation.
- *
- * This is useful for creating injectable state composers with minimal boilerplate.
+ * Creates a [ComposedStateProvider]..
  *
  * Example:
  *
@@ -91,7 +89,35 @@ public fun <State> composedStateProvider(
 }
 
 /**
- * Creates a [ComposedStateProvider] for use with delegation.
+ * Creates a [ComposedStateProvider] that supplies a nullable initial state.
+ *
+ * Example:
+ *
+ * ```
+ * class ShopStateComposer @Inject constructor(
+ *     private val userStateProvider: UserStateProvider,
+ *     private val cartStateProvider: CartStateProvider,
+ * ) : ComposedStateProvider<ShopState> by composedStateProvider(
+ *     composer = {
+ *         userStateProvider into { copy(user = it) }
+ *         cartStateProvider into { copy(cart = it) }
+ *     }
+ * )
+ * ```
+ *
+ * @param State The type of state.
+ * @param composer The DSL for composing state from flows.
+ * @return A [ComposedStateProvider] that can be used with delegation.
+ */
+public fun <State> composedStateProvider(
+    composer: StateComposer<State?>.() -> Unit = {},
+): ComposedStateProvider<State?> = object : ComposedStateProvider<State?> {
+    override fun provide(): State? = null
+    override fun StateComposer<State?>.compose() = composer()
+}
+
+/**
+ * Creates a [ComposedStateProvider].
  *
  * This is useful for creating injectable state composers with minimal boilerplate.
  *

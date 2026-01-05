@@ -1,7 +1,12 @@
 package dev.jordond.stateholder.demo
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -9,18 +14,23 @@ import androidx.navigation3.ui.NavDisplay
 import dev.jordond.stateholder.demo.di.DI
 import dev.jordond.stateholder.demo.navigation.AppRoute
 import dev.jordond.stateholder.demo.navigation.navSavedStateConfiguration
-import dev.jordond.stateholder.demo.screens.dashboard.DashboardScreen
 import dev.jordond.stateholder.demo.screens.dashboard.DashboardModel
-import dev.jordond.stateholder.demo.screens.notifications.NotificationsScreen
+import dev.jordond.stateholder.demo.screens.dashboard.DashboardScreen
 import dev.jordond.stateholder.demo.screens.notifications.NotificationsModel
-import dev.jordond.stateholder.demo.screens.profile.ProfileScreen
+import dev.jordond.stateholder.demo.screens.notifications.NotificationsScreen
 import dev.jordond.stateholder.demo.screens.profile.ProfileModel
-import dev.jordond.stateholder.demo.screens.settings.SettingsScreen
+import dev.jordond.stateholder.demo.screens.profile.ProfileScreen
 import dev.jordond.stateholder.demo.screens.settings.SettingsModel
+import dev.jordond.stateholder.demo.screens.settings.SettingsScreen
 
 @Composable
 fun App() {
-    MaterialTheme {
+    val settings by DI.settingsRepository.state.collectAsState()
+    val darkTheme = settings.darkMode
+
+    MaterialTheme(
+        colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme(),
+    ) {
         val backStack = rememberNavBackStack(navSavedStateConfiguration, AppRoute.Dashboard)
 
         NavDisplay(

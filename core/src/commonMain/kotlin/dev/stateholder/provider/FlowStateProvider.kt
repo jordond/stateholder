@@ -57,6 +57,28 @@ public fun <State> flowStateProvider(
 }
 
 /**
+ * Creates a [FlowStateProvider] for use with delegation that supplies a nullable initial state.
+ *
+ * Example:
+ *
+ * ```
+ * class UserStateProvider @Inject constructor(
+ *     userRepository: UserRepository,
+ * ) : FlowStateProvider<User?> by flowStateProvider(userRepository.currentUser)
+ * ```
+ *
+ * @param State The type of state.
+ * @param flow A flow that emits nullable state updates.
+ * @return A [FlowStateProvider] that can be used with delegation.
+ */
+public fun <State> flowStateProvider(
+    flow: Flow<State?>,
+): FlowStateProvider<State?> = object : FlowStateProvider<State?> {
+    override fun provide(): State? = null
+    override fun states(): Flow<State?> = flow
+}
+
+/**
  * Creates a [FlowStateProvider] for use with delegation.
  *
  * This is useful for creating injectable [FlowStateProvider] implementations with minimal boilerplate.
