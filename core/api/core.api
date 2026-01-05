@@ -50,7 +50,7 @@ public final class dev/stateholder/StateContainer$DefaultImpls {
 }
 
 public final class dev/stateholder/StateContainerKt {
-	public static final fun compose (Ldev/stateholder/StateContainer;Ldev/stateholder/provider/ComposedStateProvider;)V
+	public static final fun compose (Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Ldev/stateholder/provider/ComposedStateProvider;)V
 	public static final fun compose (Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function1;)V
 	public static final fun mergeWithState (Lkotlinx/coroutines/flow/Flow;Ldev/stateholder/StateContainer;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
 	public static final fun stateContainer (Ldev/stateholder/StateProvider;)Ldev/stateholder/StateContainer;

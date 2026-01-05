@@ -8,6 +8,10 @@ public abstract class dev/stateholder/extensions/viewmodel/StateViewModel : andr
 	protected final fun composeState (Lkotlin/jvm/functions/Function1;)V
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	protected final fun getStateContainer ()Ldev/stateholder/StateContainer;
+	protected final fun mergeState (Ldev/stateholder/StateHolder;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	protected final fun mergeState (Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
+	public static synthetic fun mergeState$default (Ldev/stateholder/extensions/viewmodel/StateViewModel;Ldev/stateholder/StateHolder;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
+	public static synthetic fun mergeState$default (Ldev/stateholder/extensions/viewmodel/StateViewModel;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
 	protected final fun updateState (Lkotlin/jvm/functions/Function1;)V
 }
 
