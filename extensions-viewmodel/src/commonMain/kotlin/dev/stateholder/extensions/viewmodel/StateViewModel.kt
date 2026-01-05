@@ -10,6 +10,9 @@ import dev.stateholder.compose
 import dev.stateholder.provider.ComposedStateProvider
 import dev.stateholder.provider.composedStateProvider
 import dev.stateholder.stateContainer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -206,6 +209,35 @@ public abstract class StateViewModel<State>(
     protected fun composeState(composer: StateComposer<State>.() -> Unit) {
         stateContainer.compose(viewModelScope, composer)
     }
+
+    /**
+     * Merges emissions from this [Flow] into the current state.
+     *
+     * Each emission triggers [block] with the current state and emitted value,
+     * and the returned state becomes the new state.
+     *
+     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
+     * @param block A suspend function that combines the current state with the emitted value.
+     * @return A [Job] that can be used to cancel the collection.
+     */
+    protected fun <T> Flow<T>.mergeState(
+        scope: CoroutineScope = viewModelScope,
+        block: suspend (state: State, value: T) -> State,
+    ): Job {
+        return stateContainer.merge(this, scope, block)
+    }
+
+    /**
+     * Merges state from another [StateHolder] into this ViewModel's state.
+     *
+     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
+     * @param block A suspend function that combines the current state with the other holder's state.
+     * @return A [Job] that can be used to cancel the collection.
+     */
+    protected fun <T> StateHolder<T>.mergeState(
+        scope: CoroutineScope = viewModelScope,
+        block: suspend (state: State, value: T) -> State,
+    ): Job = state.mergeState(scope, block)
 
     /**
      * Updates the current state using the provided transformation [block].
