@@ -20,10 +20,14 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import dev.jordond.stateholder.demo.data.Task
 import dev.jordond.stateholder.demo.data.TaskPriority
 import dev.jordond.stateholder.demo.data.User
+import dev.jordond.stateholder.demo.screens.dashboard.DashboardModel.Event
 import dev.stateholder.dispatcher.Dispatcher
 import dev.stateholder.dispatcher.rememberDebounceDispatcher
 import dev.stateholder.dispatcher.rememberRelay
@@ -73,16 +78,21 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel) {
+fun DashboardScreen(
+    viewModel: DashboardModel,
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+) {
     val state by viewModel.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAddDialog by remember { mutableStateOf(false) }
 
     HandleEvents(viewModel) { event ->
         when (event) {
-            is DashboardEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
-            is DashboardEvent.ShowAddTaskDialog -> showAddDialog = true
-            is DashboardEvent.TaskAdded -> showAddDialog = false
+            is Event.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
+            is Event.ShowAddTaskDialog -> showAddDialog = true
+            is Event.TaskAdded -> showAddDialog = false
         }
     }
 
@@ -95,6 +105,9 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
                 is DashboardAction.DeleteTask -> viewModel.deleteTask(action.taskId)
                 is DashboardAction.AddTask -> viewModel.addTask(action.title, action.priority)
                 is DashboardAction.ShowAddTaskDialog -> viewModel.showAddTaskDialog()
+                is DashboardAction.NavigateToSettings -> onNavigateToSettings()
+                is DashboardAction.NavigateToNotifications -> onNavigateToNotifications()
+                is DashboardAction.NavigateToProfile -> onNavigateToProfile()
             }
         }
 
@@ -127,6 +140,12 @@ sealed interface DashboardAction {
     ) : DashboardAction
 
     data object ShowAddTaskDialog : DashboardAction
+
+    data object NavigateToSettings : DashboardAction
+
+    data object NavigateToNotifications : DashboardAction
+
+    data object NavigateToProfile : DashboardAction
 }
 
 @Composable
@@ -142,11 +161,42 @@ private fun DashboardContent(
             TopAppBar(
                 title = { Text("StateHolder Demo") },
                 actions = {
+                    IconButton(
+                        onClick = dispatcher.rememberRelay(DashboardAction.NavigateToNotifications),
+                    ) {
+                        BadgedBox(
+                            badge = {
+                                if (state.unreadNotificationCount > 0) {
+                                    Badge {
+                                        Text(
+                                            text =
+                                                if (state.unreadNotificationCount > 99) {
+                                                    "99+"
+                                                } else {
+                                                    state.unreadNotificationCount.toString()
+                                                },
+                                        )
+                                    }
+                                }
+                            },
+                        ) {
+                            Icon(
+                                Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = dispatcher.rememberRelay(DashboardAction.NavigateToSettings),
+                    ) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    }
                     UserSection(
                         user = state.user,
                         isLoading = state.isUserLoading,
                         onLogin = dispatcher.rememberRelay(DashboardAction.Login),
                         onLogout = dispatcher.rememberRelay(DashboardAction.Logout),
+                        onProfile = dispatcher.rememberRelay(DashboardAction.NavigateToProfile),
                     )
                 },
             )
@@ -237,10 +287,11 @@ private fun UserSection(
     isLoading: Boolean,
     onLogin: () -> Unit,
     onLogout: () -> Unit,
+    onProfile: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         when {
             isLoading -> {
@@ -248,8 +299,9 @@ private fun UserSection(
             }
 
             user != null -> {
-                Icon(Icons.Default.Person, contentDescription = null)
-                Text(user.name, style = MaterialTheme.typography.bodyMedium)
+                IconButton(onClick = onProfile) {
+                    Icon(Icons.Default.Person, contentDescription = "Profile")
+                }
                 IconButton(onClick = onLogout) {
                     Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
                 }

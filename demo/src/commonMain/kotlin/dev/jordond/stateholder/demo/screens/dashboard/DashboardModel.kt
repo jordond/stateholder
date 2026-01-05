@@ -1,5 +1,7 @@
 package dev.jordond.stateholder.demo.screens.dashboard
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import dev.jordond.stateholder.demo.data.TaskPriority
 import dev.jordond.stateholder.demo.data.TaskRepository
@@ -7,21 +9,22 @@ import dev.jordond.stateholder.demo.data.UserRepository
 import dev.stateholder.extensions.viewmodel.UiStateViewModel
 import kotlinx.coroutines.launch
 
-class DashboardViewModel(
+@Stable
+class DashboardModel(
     stateProvider: DashboardState.Provider,
     private val userRepository: UserRepository,
     private val taskRepository: TaskRepository,
-) : UiStateViewModel<DashboardState, DashboardEvent>(stateProvider) {
+) : UiStateViewModel<DashboardState, DashboardModel.Event>(stateProvider) {
     fun login() {
         viewModelScope.launch {
             userRepository.login("demo@stateholder.dev")
-            emit(DashboardEvent.ShowSnackbar("Welcome back!"))
+            emit(Event.ShowSnackbar("Welcome back!"))
         }
     }
 
     fun logout() {
         userRepository.logout()
-        emit(DashboardEvent.ShowSnackbar("Logged out successfully"))
+        emit(Event.ShowSnackbar("Logged out successfully"))
     }
 
     fun toggleTaskComplete(taskId: String) {
@@ -33,7 +36,7 @@ class DashboardViewModel(
     fun deleteTask(taskId: String) {
         viewModelScope.launch {
             taskRepository.deleteTask(taskId)
-            emit(DashboardEvent.ShowSnackbar("Task deleted"))
+            emit(Event.ShowSnackbar("Task deleted"))
         }
     }
 
@@ -42,27 +45,30 @@ class DashboardViewModel(
         priority: TaskPriority,
     ) {
         if (title.isBlank()) {
-            emit(DashboardEvent.ShowSnackbar("Task title cannot be empty"))
+            emit(Event.ShowSnackbar("Task title cannot be empty"))
             return
         }
         viewModelScope.launch {
             taskRepository.addTask(title = title, priority = priority)
-            emit(DashboardEvent.ShowSnackbar("Task added"))
-            emit(DashboardEvent.TaskAdded)
+            emit(Event.ShowSnackbar("Task added"))
+            emit(Event.TaskAdded)
         }
     }
 
     fun showAddTaskDialog() {
-        emit(DashboardEvent.ShowAddTaskDialog)
+        emit(Event.ShowAddTaskDialog)
+    }
+
+    @Immutable
+    sealed interface Event {
+        data class ShowSnackbar(
+            val message: String,
+        ) : Event
+
+        data object ShowAddTaskDialog : Event
+
+        data object TaskAdded : Event
     }
 }
 
-sealed interface DashboardEvent {
-    data class ShowSnackbar(
-        val message: String,
-    ) : DashboardEvent
 
-    data object ShowAddTaskDialog : DashboardEvent
-
-    data object TaskAdded : DashboardEvent
-}

@@ -10,7 +10,13 @@ import dev.jordond.stateholder.demo.di.DI
 import dev.jordond.stateholder.demo.navigation.AppRoute
 import dev.jordond.stateholder.demo.navigation.navSavedStateConfiguration
 import dev.jordond.stateholder.demo.screens.dashboard.DashboardScreen
-import dev.jordond.stateholder.demo.screens.dashboard.DashboardViewModel
+import dev.jordond.stateholder.demo.screens.dashboard.DashboardModel
+import dev.jordond.stateholder.demo.screens.notifications.NotificationsScreen
+import dev.jordond.stateholder.demo.screens.notifications.NotificationsModel
+import dev.jordond.stateholder.demo.screens.profile.ProfileScreen
+import dev.jordond.stateholder.demo.screens.profile.ProfileModel
+import dev.jordond.stateholder.demo.screens.settings.SettingsScreen
+import dev.jordond.stateholder.demo.screens.settings.SettingsModel
 
 @Composable
 fun App() {
@@ -25,13 +31,57 @@ fun App() {
                     entry<AppRoute.Dashboard> {
                         val viewModel =
                             viewModel {
-                                DashboardViewModel(
+                                DashboardModel(
                                     stateProvider = DI.dashboardStateProvider,
                                     userRepository = DI.userRepository,
                                     taskRepository = DI.taskRepository,
                                 )
                             }
-                        DashboardScreen(viewModel)
+                        DashboardScreen(
+                            viewModel = viewModel,
+                            onNavigateToSettings = { backStack.add(AppRoute.Settings) },
+                            onNavigateToNotifications = { backStack.add(AppRoute.Notifications) },
+                            onNavigateToProfile = { backStack.add(AppRoute.Profile) },
+                        )
+                    }
+                    entry<AppRoute.Settings> {
+                        val viewModel =
+                            viewModel {
+                                SettingsModel(
+                                    stateProvider = DI.settingsStateProvider,
+                                    settingsRepository = DI.settingsRepository,
+                                )
+                            }
+                        SettingsScreen(
+                            viewModel = viewModel,
+                            onNavigateBack = { backStack.removeLastOrNull() },
+                        )
+                    }
+                    entry<AppRoute.Notifications> {
+                        val viewModel =
+                            viewModel {
+                                NotificationsModel(
+                                    stateProvider = DI.notificationsStateProvider,
+                                    notificationRepository = DI.notificationRepository,
+                                )
+                            }
+                        NotificationsScreen(
+                            viewModel = viewModel,
+                            onNavigateBack = { backStack.removeLastOrNull() },
+                        )
+                    }
+                    entry<AppRoute.Profile> {
+                        val viewModel =
+                            viewModel {
+                                ProfileModel(
+                                    stateProvider = DI.profileStateProvider,
+                                    userRepository = DI.userRepository,
+                                )
+                            }
+                        ProfileScreen(
+                            viewModel = viewModel,
+                            onNavigateBack = { backStack.removeLastOrNull() },
+                        )
                     }
                 },
         )
