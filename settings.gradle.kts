@@ -20,6 +20,7 @@ dependencyResolutionManagement {
 
 plugins {
     id("com.gradle.develocity") version "4.3"
+    id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.4"
 }
 
 develocity {
@@ -28,6 +29,16 @@ develocity {
             context.buildResult.failures.isNotEmpty() && !System.getenv("CI").isNullOrEmpty()
         }
     }
+}
+
+kover {
+    enableCoverage()
+    reports {
+        excludesAnnotatedBy.add("KoverIgnore")
+        excludedClasses.add($$$"*$$inlined$*")
+        excludedClasses.add($$$"Dispatcher$DefaultImpls")
+    }
+    skipProjects("demo")
 }
 
 rootProject.name = "StateHolder"
@@ -40,4 +51,5 @@ include(
     ":extensions-viewmodel",
     ":extensions-voyager",
 )
+
 include(":demo")

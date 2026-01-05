@@ -2,13 +2,14 @@ package dev.stateholder.extensions.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.stateholder.StateComposer
 import dev.stateholder.StateContainer
 import dev.stateholder.StateHolder
 import dev.stateholder.StateProvider
+import dev.stateholder.compose
+import dev.stateholder.provider.ComposedStateProvider
+import dev.stateholder.provider.composedStateProvider
 import dev.stateholder.stateContainer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -17,79 +18,194 @@ import kotlinx.coroutines.flow.StateFlow
  * Extend this class to create ViewModels with built-in state management. The state is
  * exposed via the [StateHolder] interface, allowing UI components to collect state updates.
  *
- * Example:
+ * There are several ways to construct a StateViewModel:
  *
+ * **Simple initial state:**
  * ```
- * data class CounterState(val count: Int = 0)
+ * class CounterViewModel : StateViewModel<CounterState>(CounterState())
+ * ```
  *
- * class CounterViewModel : StateViewModel<CounterState>(CounterState()) {
- *     fun increment() {
- *         updateState { it.copy(count = it.count + 1) }
- *     }
- * }
+ * **With inline composition:**
+ * ```
+ * class CounterViewModel @Inject constructor(
+ *     private val counterRepository: CounterRepository,
+ * ) : StateViewModel<CounterState>(
+ *     initialState = CounterState(),
+ *     composer = {
+ *         counterRepository.count into { copy(count = it) }
+ *     },
+ * )
+ * ```
  *
- * // In your UI:
- * @Composable
- * fun CounterScreen(viewModel: CounterViewModel) {
- *     val state by viewModel.collectAsState()
- *     Button(onClick = { viewModel.increment() }) {
- *         Text("Count: ${state.count}")
+ * **With ComposedStateProvider (for dependency injection):**
+ * ```
+ * class CounterStateComposer @Inject constructor(
+ *     private val counterRepository: CounterRepository,
+ * ) : ComposedStateProvider<CounterState> by composedStateProvider(
+ *     initialState = CounterState(),
+ *     composer = {
+ *         counterRepository.count into { copy(count = it) }
+ *     },
+ * )
+ *
+ * class CounterViewModel @Inject constructor(
+ *     composer: CounterStateComposer,
+ * ) : StateViewModel<CounterState>(composer)
+ * ```
+ *
+ * **With a StateProvider:**
+ * ```
+ * class CounterStateProvider @Inject constructor(
+ *     counterRepository: CounterRepository,
+ * ) : StateProvider<CounterState> by stateContainer(
+ *     value = counterRepository.count.map { CounterState(count = it) },
+ * )
+ *
+ * class CounterViewModel @Inject constructor(
+ *     counterStateProvider: CounterStateProvider,
+ *     counterRepository: CounterRepository,
+ * ) : StateViewModel<CounterState>(
+ *     stateProvider = counterStateProvider,
+ *     composer = {
+ *         counterRepository.count into { copy(count = it) }
+ *     },
+ * )
+ * ```
+ *
+ * You can also compose state in the `init` block using [composeState]:
+ * ```
+ * class CounterViewModel @Inject constructor(
+ *     private val counterRepository: CounterRepository,
+ * ) : StateViewModel<CounterState>(CounterState()) {
+ *     init {
+ *         composeState {
+ *             counterRepository.count into { copy(count = it) }
+ *         }
  *     }
  * }
  * ```
  *
  * @param State The type of state managed by this ViewModel.
- * @param stateContainer The [StateContainer] used to manage state.
+ * @param composer The provider that supplies initial state and composition logic.
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public abstract class StateViewModel<State>(
-    protected val stateContainer: StateContainer<State>,
+    composer: ComposedStateProvider<State>,
 ) : ViewModel(), StateHolder<State> {
-
-    /**
-     * Creates a [StateViewModel] with state provided by a [StateProvider].
-     *
-     * @param stateProvider A provider that supplies the initial state.
-     */
-    public constructor(stateProvider: StateProvider<State>) : this(stateContainer(stateProvider))
-
     /**
      * Creates a [StateViewModel] with the given initial state.
      *
-     * @param initialState The initial state value.
+     * Example:
+     *
+     * ```
+     * class CounterViewModel : StateViewModel<CounterState>(CounterState())
+     * ```
+     *
+     * @param initialState The initial state.
      */
-    public constructor(initialState: State) : this(stateContainer(initialState))
-
-    override val state: StateFlow<State> = stateContainer.state
+    public constructor(initialState: State) : this(composedStateProvider(initialState))
 
     /**
-     * Merges emissions from this [Flow] into the current state.
+     * Creates a [StateViewModel] with the given initial state and composition logic.
      *
-     * Each emission triggers [block] with the current state and emitted value,
-     * and the returned state becomes the new state.
+     * Example:
      *
-     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
-     * @param block A suspend function that combines the current state with the emitted value.
-     * @return A [Job] that can be used to cancel the collection.
+     * ```
+     * class CounterViewModel @Inject constructor(
+     *     private val counterRepository: CounterRepository,
+     * ) : StateViewModel<CounterState>(
+     *     initialState = CounterState(),
+     *     composer = {
+     *         counterRepository.count into { copy(count = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param initialState The initial state.
+     * @param composer The DSL for composing state from flows.
      */
-    protected fun <T> Flow<T>.mergeState(
-        scope: CoroutineScope = viewModelScope,
-        block: suspend (state: State, value: T) -> State,
-    ): Job {
-        return stateContainer.merge(this, scope, block)
+    public constructor(
+        initialState: State,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(initialState, composer))
+
+    /**
+     * Creates a [StateViewModel] with the given [StateProvider].
+     *
+     * Example:
+     *
+     * ```
+     * class CounterViewModel @Inject constructor(
+     *     counterStateProvider: CounterStateProvider,
+     * ) : StateViewModel<CounterState>(counterStateProvider)
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     */
+    public constructor(stateProvider: StateProvider<State>) : this(
+        composedStateProvider(stateProvider)
+    )
+
+    /**
+     * Creates a [StateViewModel] with the given [StateProvider] and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class CounterViewModel @Inject constructor(
+     *     counterStateProvider: CounterStateProvider,
+     *     private val counterRepository: CounterRepository,
+     * ) : StateViewModel<CounterState>(
+     *     stateProvider = counterStateProvider,
+     *     composer = {
+     *         counterRepository.count into { copy(count = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     * @param composer The DSL for composing state from flows.
+     */
+    public constructor(
+        stateProvider: StateProvider<State>,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(stateProvider, composer))
+
+    /**
+     * The [StateContainer] used to manage state.
+     */
+    protected val stateContainer: StateContainer<State> = stateContainer(composer.provide())
+
+    /**
+     * @see StateHolder.state
+     */
+    override val state: StateFlow<State> = stateContainer.state
+
+    init {
+        stateContainer.compose(viewModelScope, composer)
     }
 
     /**
-     * Merges state from another [StateHolder] into this ViewModel's state.
+     * Composes state from multiple reactive sources using the [StateComposer] DSL.
      *
-     * @param scope The [CoroutineScope] to collect in. Defaults to [viewModelScope].
-     * @param block A suspend function that combines the current state with the other holder's state.
-     * @return A [Job] that can be used to cancel the collection.
+     * Call this in your `init` block to wire up flows that should update portions of your state.
+     *
+     * Example:
+     *
+     * ```
+     * init {
+     *     composeState {
+     *         userRepository.currentUser into { copy(user = it) }
+     *         cartRepository.cart into { copy(cart = it) }
+     *     }
+     * }
+     * ```
+     *
+     * @param composer The DSL for composing state from flows.
      */
-    protected fun <T> StateHolder<T>.mergeState(
-        scope: CoroutineScope = viewModelScope,
-        block: suspend (state: State, value: T) -> State,
-    ): Job = state.mergeState(scope, block)
+    protected fun composeState(composer: StateComposer<State>.() -> Unit) {
+        stateContainer.compose(viewModelScope, composer)
+    }
 
     /**
      * Updates the current state using the provided transformation [block].

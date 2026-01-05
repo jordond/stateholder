@@ -1,7 +1,5 @@
 package dev.stateholder
 
-import kotlinx.coroutines.flow.Flow
-
 /**
  * A provider of a state for a [StateContainer].
  *
@@ -36,29 +34,6 @@ public fun interface StateProvider<State> {
 }
 
 /**
- * A reactive provider of state for a [StateContainer].
- *
- * Unlike [StateProvider] which provides a single state value, this interface
- * provides both an initial state via [StateProvider.provide] and a [Flow] of state updates.
- *
- * ```
- * class MyFlowStateProvider @Inject constructor(repo: MyRepo) : FlowStateProvider<Int> {
- *     override fun states() = repo.observeData()
- * }
- *
- * class MyModel @Inject constructor(stateProvider: MyFlowStateProvider) : ViewModel() {
- *     private val container = stateContainer(stateProvider)
- * }
- * ```
- */
-public interface FlowStateProvider<State> : StateProvider<State> {
-    /**
-     * Returns a [Flow] that emits state updates.
-     */
-    public fun states(): Flow<State>
-}
-
-/**
  * Convenience function to create a simple [StateProvider] with a value.
  *
  * @param[State] The type of the state.
@@ -78,6 +53,29 @@ public fun <State> provideState(
     block: () -> State,
 ): StateProvider<State> = StateProvider { block() }
 
+
+/**
+ * Convenience function to create a simple [StateProvider] with a value.
+ *
+ * @see [provideState]
+ * @see [StateProvider]
+ * @param[State] The type of the state.
+ * @param[value] The state to provide.
+ * @return A [StateProvider] that provides the [value].
+ */
+public fun <State> stateProvider(value: State): StateProvider<State> = provideState(value)
+
+/**
+ * Convenience function to create a simple [StateProvider] with a value.
+ *
+ * @see [provideState]
+ * @see [StateProvider]
+ * @param[State] The type of the state.
+ * @param[block] The block that will be called to provide the state.
+ * @return A [StateProvider] that provides the [State].
+ */
+public fun <State> stateProvider(block: () -> State): StateProvider<State> = provideState(block)
+
 /**
  * Convenience function to create a [StateProvider] from any [T] value.
  *
@@ -85,3 +83,4 @@ public fun <State> provideState(
  * @return A [StateProvider] that provides the [T] value.
  */
 public fun <T : Any> T.asStateProvider(): StateProvider<T> = StateProvider { this }
+

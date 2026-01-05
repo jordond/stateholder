@@ -5,9 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import dev.stateholder.EventHolder
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 /**
  * Collects and processes events from an [EventHolder], automatically marking them as handled.
@@ -45,13 +48,14 @@ public fun <Event> HandleEvents(
     onEvent: suspend (Event) -> Unit,
 ) {
     val events by holder.events.collectAsState()
-    val handler = remember {
-        { event: Event ->
-            if (shouldHandle(event)) {
-                holder.handle(event)
+    val handler =
+        remember {
+            { event: Event ->
+                if (shouldHandle(event)) {
+                    holder.handle(event)
+                }
             }
         }
-    }
 
     HandleEvents(events, handler, onEvent)
 }
@@ -79,8 +83,10 @@ public fun <Event> HandleEvents(
  * Processes a [PersistentList] of events within a [LaunchedEffect].
  *
  * This is the core implementation that iterates through each event, invokes [onEvent],
- * and optionally calls [handle] to mark the event as processed. The [LaunchedEffect]
- * is keyed on [events], so it re-runs whenever the event list changes.
+ * and optionally calls [handle] to mark the event as processed.
+ *
+ * Events are processed sequentially and tracked by referential identity to ensure
+ * each event is only processed once, even when the list updates rapidly.
  *
  * @param events The persistent list of events to process.
  * @param handle Optional callback invoked after [onEvent] to mark the event as handled.
@@ -92,13 +98,16 @@ public fun <Event> HandleEvents(
     handle: ((Event) -> Unit)? = null,
     onEvent: suspend (Event) -> Unit,
 ) {
+    val seenEvents = remember { mutableSetOf<Any?>() }
+    val currentOnEvent by rememberUpdatedState(onEvent)
+    val currentHandle by rememberUpdatedState(handle)
+
     LaunchedEffect(events) {
         events.forEach { event ->
-            onEvent(event)
-
-            if (handle != null) {
-                handle(event)
-            }
+            if (!seenEvents.add(event)) return@forEach
+            currentOnEvent(event)
+            currentHandle?.invoke(event)
         }
+        seenEvents.retainAll(events.toSet())
     }
 }

@@ -15,6 +15,19 @@
         "org.jetbrains.kotlin",
         "org.jetbrains.kotlinx:binary-compatibility-validator"
       ]
+    },
+    {
+      "groupName": "Demo",
+      "matchPackageNames": [
+        "androidx.activity:activity",
+        "androidx.activity:activity-compose",
+        "androidx.core:core-ktx",
+        "co.touchlab:kermit",
+        "org.jetbrains.androidx.navigation3:navigation3-ui",
+        "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3",
+        "org.jetbrains.compose.components:components-resources",
+        "org.jetbrains.compose.material:material-icons-extended"
+      ]
     }
   ]
 }

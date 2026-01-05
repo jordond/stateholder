@@ -39,7 +39,6 @@ kotlin {
     macosArm64()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { target ->
@@ -52,8 +51,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.core)
 
-            implementation(compose.runtime)
-            implementation(compose.runtimeSaveable)
+            implementation(libs.compose.runtime)
             implementation(libs.kotlinx.collections)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.voyager.navigator)

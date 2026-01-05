@@ -1,25 +1,28 @@
 public abstract class dev/stateholder/extensions/viewmodel/StateViewModel : androidx/lifecycle/ViewModel, dev/stateholder/StateHolder {
 	public static final field $stable I
-	public fun <init> (Ldev/stateholder/StateContainer;)V
 	public fun <init> (Ldev/stateholder/StateProvider;)V
+	public fun <init> (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Ldev/stateholder/provider/ComposedStateProvider;)V
 	public fun <init> (Ljava/lang/Object;)V
+	public fun <init> (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)V
+	protected final fun composeState (Lkotlin/jvm/functions/Function1;)V
 	public fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	protected final fun getStateContainer ()Ldev/stateholder/StateContainer;
-	protected final fun mergeState (Ldev/stateholder/StateHolder;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
-	protected final fun mergeState (Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/Job;
-	public static synthetic fun mergeState$default (Ldev/stateholder/extensions/viewmodel/StateViewModel;Ldev/stateholder/StateHolder;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
-	public static synthetic fun mergeState$default (Ldev/stateholder/extensions/viewmodel/StateViewModel;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lkotlinx/coroutines/Job;
 	protected final fun updateState (Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract class dev/stateholder/extensions/viewmodel/UiStateViewModel : dev/stateholder/extensions/viewmodel/StateViewModel, dev/stateholder/EventHolder {
 	public static final field $stable I
-	public fun <init> (Ldev/stateholder/StateContainer;)V
 	public fun <init> (Ldev/stateholder/StateProvider;)V
+	public fun <init> (Ldev/stateholder/StateProvider;Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Ldev/stateholder/provider/ComposedStateProvider;)V
 	public fun <init> (Ljava/lang/Object;)V
-	protected final fun emit (Ljava/lang/Object;)V
-	protected final fun getEventContainer ()Ldev/stateholder/StateContainer;
+	public fun <init> (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)V
+	public fun emit (Ljava/lang/Iterable;)V
+	public fun emit (Ljava/lang/Object;)V
+	public fun emit ([Ljava/lang/Object;)V
 	public fun getEvents ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun handle (Ljava/lang/Object;)V
+	public fun handleAll ()V
 }
 

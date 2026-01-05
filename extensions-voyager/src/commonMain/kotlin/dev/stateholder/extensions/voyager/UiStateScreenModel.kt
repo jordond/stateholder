@@ -1,12 +1,11 @@
 package dev.stateholder.extensions.voyager
 
 import dev.stateholder.EventHolder
-import dev.stateholder.StateContainer
+import dev.stateholder.StateComposer
 import dev.stateholder.StateProvider
-import dev.stateholder.stateContainer
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.flow.StateFlow
+import dev.stateholder.eventHolder
+import dev.stateholder.provider.ComposedStateProvider
+import dev.stateholder.provider.composedStateProvider
 
 /**
  * A [StateScreenModel] that also supports one-time UI events via [EventHolder].
@@ -15,25 +14,64 @@ import kotlinx.coroutines.flow.StateFlow
  * such as showing snackbars, navigating, or displaying dialogs. Events are queued and
  * must be explicitly handled to be removed from the queue.
  *
- * Example:
+ * There are several ways to construct a UiStateScreenModel:
  *
+ * **Simple initial state:**
  * ```
- * data class FormState(val isLoading: Boolean = false)
- *
- * sealed interface FormEvent {
- *     data class ShowError(val message: String) : FormEvent
- *     data object NavigateToSuccess : FormEvent
- * }
- *
  * class FormScreenModel : UiStateScreenModel<FormState, FormEvent>(FormState()) {
  *     fun submit() {
- *         updateState { it.copy(isLoading = true) }
- *         // ... perform submission
  *         emit(FormEvent.NavigateToSuccess)
  *     }
  * }
+ * ```
  *
- * // In your Screen:
+ * **With inline composition:**
+ * ```
+ * class FormScreenModel @Inject constructor(
+ *     private val formRepository: FormRepository,
+ * ) : UiStateScreenModel<FormState, FormEvent>(
+ *     initialState = FormState(),
+ *     composer = {
+ *         formRepository.formData into { copy(data = it) }
+ *     },
+ * ) {
+ *     fun submit() {
+ *         updateState { it.copy(isLoading = true) }
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
+ *
+ * **With ComposedStateProvider (for dependency injection):**
+ * ```
+ * class FormScreenModel @Inject constructor(
+ *     composer: FormStateComposer,
+ * ) : UiStateScreenModel<FormState, FormEvent>(composer) {
+ *     fun submit() {
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
+ *
+ * **With a StateProvider:**
+ * ```
+ * class FormScreenModel @Inject constructor(
+ *     formStateProvider: FormStateProvider,
+ *     private val formRepository: FormRepository,
+ * ) : UiStateScreenModel<FormState, FormEvent>(
+ *     stateProvider = formStateProvider,
+ *     composer = {
+ *         formRepository.formData into { copy(data = it) }
+ *     },
+ * ) {
+ *     fun submit() {
+ *         emit(FormEvent.NavigateToSuccess)
+ *     }
+ * }
+ * ```
+ *
+ * **Handling events in your Screen:**
+ * ```
  * class FormScreen : Screen {
  *     @Composable
  *     override fun Content() {
@@ -46,53 +84,93 @@ import kotlinx.coroutines.flow.StateFlow
  *                 FormEvent.NavigateToSuccess -> navigator.push(SuccessScreen)
  *             }
  *         }
- *         // ... rest of UI
  *     }
  * }
  * ```
  *
  * @param State The type of state managed by this ScreenModel.
  * @param Event The type of one-time events emitted by this ScreenModel.
- * @param stateContainer The [StateContainer] used to manage state.
+ * @param composer The provider that supplies initial state and composition logic.
  */
 public abstract class UiStateScreenModel<State, Event>(
-    stateContainer: StateContainer<State>,
-) : StateScreenModel<State>(stateContainer), EventHolder<Event> {
-
-    /**
-     * Creates a [UiStateScreenModel] with state provided by a [StateProvider].
-     *
-     * @param stateProvider A provider that supplies the initial state.
-     */
-    public constructor(stateProvider: StateProvider<State>) : this(stateContainer(stateProvider))
-
+    composer: ComposedStateProvider<State>,
+) : StateScreenModel<State>(composer), EventHolder<Event> by eventHolder() {
     /**
      * Creates a [UiStateScreenModel] with the given initial state.
      *
-     * @param initialState The initial state value.
+     * Example:
+     *
+     * ```
+     * class FormScreenModel : UiStateScreenModel<FormState, FormEvent>(FormState())
+     * ```
+     *
+     * @param initialState The initial state.
      */
-    public constructor(initialState: State) : this(stateContainer(initialState))
+    public constructor(initialState: State) : this(composedStateProvider(initialState))
 
     /**
-     * Internal container for managing the event queue.
+     * Creates a [UiStateScreenModel] with the given initial state and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class FormScreenModel @Inject constructor(
+     *     private val formRepository: FormRepository,
+     * ) : UiStateScreenModel<FormState, FormEvent>(
+     *     initialState = FormState(),
+     *     composer = {
+     *         formRepository.formData into { copy(data = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param initialState The initial state.
+     * @param composer The DSL for composing state from flows.
      */
-    protected val eventContainer: StateContainer<PersistentList<Event>> =
-        stateContainer(persistentListOf())
-
-    public override val events: StateFlow<PersistentList<Event>> = eventContainer.state
-
-    override fun handle(event: Event) {
-        eventContainer.update { it.remove(event) }
-    }
+    public constructor(
+        initialState: State,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(initialState, composer))
 
     /**
-     * Emits a one-time [event] to be handled by the UI layer.
+     * Creates a [UiStateScreenModel] with the given [StateProvider].
      *
-     * The event is added to the queue and remains until [handle] is called.
+     * Example:
      *
-     * @param event The event to emit.
+     * ```
+     * class FormScreenModel @Inject constructor(
+     *     formStateProvider: FormStateProvider,
+     * ) : UiStateScreenModel<FormState, FormEvent>(formStateProvider)
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
      */
-    protected fun emit(event: Event) {
-        eventContainer.update { it.add(event) }
-    }
+    public constructor(stateProvider: StateProvider<State>) : this(
+        composedStateProvider(stateProvider)
+    )
+
+    /**
+     * Creates a [UiStateScreenModel] with the given [StateProvider] and composition logic.
+     *
+     * Example:
+     *
+     * ```
+     * class FormScreenModel @Inject constructor(
+     *     formStateProvider: FormStateProvider,
+     *     private val formRepository: FormRepository,
+     * ) : UiStateScreenModel<FormState, FormEvent>(
+     *     stateProvider = formStateProvider,
+     *     composer = {
+     *         formRepository.formData into { copy(data = it) }
+     *     },
+     * )
+     * ```
+     *
+     * @param stateProvider The provider for the initial state.
+     * @param composer The DSL for composing state from flows.
+     */
+    public constructor(
+        stateProvider: StateProvider<State>,
+        composer: StateComposer<State>.() -> Unit,
+    ) : this(composedStateProvider(stateProvider, composer))
 }

@@ -1,6 +1,8 @@
 package dev.stateholder
 
+import dev.stateholder.internal.DefaultStateComposer
 import dev.stateholder.internal.DefaultStateContainer
+import dev.stateholder.provider.ComposedStateProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -107,29 +109,24 @@ public interface StateContainer<State> {
         /**
          * Create a [StateContainer] with the given [initialStateProvider].
          */
-        internal fun <State> create(
-            initialStateProvider: StateProvider<State>,
-        ): StateContainer<State> = DefaultStateContainer(initialStateProvider)
+        internal fun <State> create(initialStateProvider: StateProvider<State>): StateContainer<State> =
+            DefaultStateContainer(initialStateProvider)
     }
 }
 
 /**
- * Create a [StateContainer] with the given [initialStateProvider].
+ * Create a [StateContainer] with the given [provider].
  *
  * @see [StateContainer]
  */
-public fun <State> stateContainer(
-    initialStateProvider: StateProvider<State>,
-): StateContainer<State> = StateContainer.create(initialStateProvider)
+public fun <State> stateContainer(provider: StateProvider<State>): StateContainer<State> = StateContainer.create(provider)
 
 /**
  * Create a [StateContainer] with the given [initialState].
  *
  * @see [StateContainer]
  */
-public fun <State> stateContainer(
-    initialState: State,
-): StateContainer<State> = StateContainer.create(provideState(initialState))
+public fun <State> stateContainer(initialState: State): StateContainer<State> = StateContainer.create(provideState(initialState))
 
 /**
  * Merge this flow with the state container, updating the state based on the provided block.
@@ -144,3 +141,112 @@ public fun <T, State> Flow<T>.mergeWithState(
     scope: CoroutineScope,
     block: suspend (state: State, value: T) -> State,
 ): Job = container.merge(this, scope, block)
+
+/**
+ * Composes state from multiple reactive sources using the [StateComposer] DSL.
+ *
+ * This allows you to declaratively wire up flows that should update portions of your state.
+ * Can be called multiple times to add more compositions.
+ *
+ * Example:
+ *
+ * ```
+ * val container = stateContainer(MyState())
+ * container.compose(viewModelScope) {
+ *     userRepository.currentUser into { copy(user = it) }
+ *     cartRepository.cart into { copy(cart = it) }
+ * }
+ * ```
+ *
+ * @param scope The coroutine scope for collecting flows.
+ * @param block The DSL for composing state from flows.
+ */
+public fun <State> StateContainer<State>.compose(
+    scope: CoroutineScope,
+    block: StateComposer<State>.() -> Unit,
+) {
+    DefaultStateComposer(scope, this).apply(block)
+}
+
+/**
+ * Composes state from a [dev.stateholder.provider.ComposedStateProvider].
+ *
+ * @param scope The coroutine scope for collecting flows.
+ * @param composeProvider The provider that supplies initial state and composition logic.
+ */
+public fun <State> StateContainer<State>.compose(
+    scope: CoroutineScope,
+    composeProvider: ComposedStateProvider<State>,
+) {
+    compose(scope) { with(composeProvider) { compose() } }
+}
+
+/**
+ * Create a [StateContainer] with the given [initialState] and compose it using the [StateComposer] DSL.
+ *
+ * The composer allows you to declaratively wire up flows that should update portions of your state.
+ *
+ * Example:
+ *
+ * ```
+ * val container = stateContainer(viewModelScope, MyState()) {
+ *     userRepository.currentUser into { copy(user = it) }
+ *     cartRepository.cart into { copy(cart = it) }
+ * }
+ * ```
+ *
+ * @param State The type of state.
+ * @param scope The coroutine scope for collecting flows.
+ * @param initialState The initial state value.
+ * @param composer The DSL for composing state from flows.
+ * @return A [StateContainer] with the composed state.
+ */
+public fun <State> stateContainer(
+    scope: CoroutineScope,
+    initialState: State,
+    composer: StateComposer<State>.() -> Unit,
+): StateContainer<State> =
+    stateContainer(initialState).also {
+        it.compose(scope, composer)
+    }
+
+/**
+ * Create a [StateContainer] with state from [initialStateProvider] and compose it using the [StateComposer] DSL.
+ *
+ * @param State The type of state.
+ * @param scope The coroutine scope for collecting flows.
+ * @param initialStateProvider The provider for the initial state.
+ * @param composer The DSL for composing state from flows.
+ * @return A [StateContainer] with the composed state.
+ */
+public fun <State> stateContainer(
+    scope: CoroutineScope,
+    initialStateProvider: StateProvider<State>,
+    composer: StateComposer<State>.() -> Unit,
+): StateContainer<State> = stateContainer(scope, initialStateProvider.provide(), composer)
+
+/**
+ * Create a [StateContainer] from a [dev.stateholder.provider.ComposedStateProvider].
+ *
+ * The provider supplies both the initial state and the composition logic.
+ *
+ * Example:
+ *
+ * ```
+ * class ShopStateComposer @Inject constructor(...) : ComposedStateProvider<ShopState> { ... }
+ *
+ * val container = stateContainer(viewModelScope, composer)
+ * ```
+ *
+ * @param State The type of state.
+ * @param scope The coroutine scope for collecting flows.
+ * @param composer The provider that supplies initial state and composition logic.
+ * @return A [StateContainer] with the composed state.
+ */
+public fun <State> stateContainer(
+    scope: CoroutineScope,
+    composer: ComposedStateProvider<State>,
+): StateContainer<State> =
+    stateContainer(composer.provide()).also {
+        it.compose(scope) { with(composer) { compose() } }
+    }

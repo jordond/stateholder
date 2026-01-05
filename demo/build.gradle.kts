@@ -6,8 +6,8 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.publish)
 }
 
 kotlin {
@@ -24,12 +24,11 @@ kotlin {
     jvm()
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { target ->
         target.binaries.framework {
-            baseName = "stateholder-voyager"
+            baseName = "stateholder-demo"
         }
     }
 
@@ -39,6 +38,7 @@ kotlin {
                 optIn("androidx.compose.material3.ExperimentalMaterial3Api")
                 optIn("androidx.compose.foundation.layout.ExperimentalLayoutApi")
                 optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+                optIn("kotlin.uuid.ExperimentalUuidApi")
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
             }
         }
@@ -48,28 +48,29 @@ kotlin {
             implementation(projects.dispatcher)
             implementation(projects.dispatcherCompose)
             implementation(projects.extensionsCompose)
-            implementation(projects.extensionsVoyager)
+            implementation(projects.extensionsViewmodel)
 
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.materialIconsExtended)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.ui.tooling.preview)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.collections)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.kermit)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.screenModel)
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
         }
 
         androidMain.dependencies {
-            implementation(compose.preview)
             implementation(libs.androidx.core)
             implementation(libs.androidx.activity)
             implementation(libs.androidx.activity.compose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.kotlinx.coroutines.guava)
+            implementation(libs.compose.ui.tooling)
         }
 
         jvmMain.dependencies {
@@ -80,7 +81,10 @@ kotlin {
 }
 
 android {
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.android.compileSdk
+            .get()
+            .toInt()
     namespace = "dev.jordond.stateholder.demo"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -88,13 +92,25 @@ android {
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
-        applicationId = libs.versions.app.name.get()
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.app.code.get().toInt()
-        versionName = libs.versions.app.version.get()
+        applicationId =
+            libs.versions.app.name
+                .get()
+        minSdk =
+            libs.versions.android.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.android.targetSdk
+                .get()
+                .toInt()
+        versionCode =
+            libs.versions.app.code
+                .get()
+                .toInt()
+        versionName =
+            libs.versions.app.version
+                .get()
     }
-
 
     buildTypes {
         release {
