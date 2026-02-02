@@ -5,15 +5,12 @@ plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
 }
 
 kotlin {
     applyDefaultHierarchyTemplate()
-
-    androidTarget()
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -65,14 +62,6 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel.navigation3)
         }
 
-        androidMain.dependencies {
-            implementation(libs.androidx.core)
-            implementation(libs.androidx.activity)
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.compose.ui.tooling)
-        }
-
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
@@ -80,57 +69,9 @@ kotlin {
     }
 }
 
-android {
-    compileSdk =
-        libs.versions.android.compileSdk
-            .get()
-            .toInt()
-    namespace = "dev.jordond.stateholder.demo"
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    defaultConfig {
-        applicationId =
-            libs.versions.app.name
-                .get()
-        minSdk =
-            libs.versions.android.minSdk
-                .get()
-                .toInt()
-        targetSdk =
-            libs.versions.android.targetSdk
-                .get()
-                .toInt()
-        versionCode =
-            libs.versions.app.code
-                .get()
-                .toInt()
-        versionName =
-            libs.versions.app.version
-                .get()
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlin {
-        jvmToolchain(jdkVersion = 11)
-    }
-}
-
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "dev.jordond.stateholder.demo.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

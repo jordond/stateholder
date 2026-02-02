@@ -1,4 +1,3 @@
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -15,7 +14,6 @@ kotlin {
     explicitApi()
     applyDefaultHierarchyTemplate()
 
-    @Suppress("UnstableApiUsage")
     androidLibrary {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         namespace = "dev.jordond.stateholder.extensions.viewmodel"

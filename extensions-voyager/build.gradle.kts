@@ -1,6 +1,5 @@
 @file:Suppress("OPT_IN_USAGE")
 
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 
 
@@ -18,7 +17,6 @@ kotlin {
     explicitApi()
     applyDefaultHierarchyTemplate()
 
-    @Suppress("UnstableApiUsage")
     androidLibrary {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         namespace = "dev.jordond.stateholder.extensions.voyager"
