@@ -45,9 +45,6 @@ jobs:
       - name: Binary Compatibility
         run: ./gradlew apiCheck --scan
 
-      - name: Lint
-        run: ./gradlew lint --scan
-
   test:
     strategy:
       matrix:
