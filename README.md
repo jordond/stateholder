@@ -1,11 +1,11 @@
 # State Holder
 
 ![Maven Central](https://img.shields.io/maven-central/v/dev.stateholder/core)
-[![Kotlin](https://img.shields.io/badge/kotlin-v2.3.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-v2.3.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Build](https://github.com/jordond/state-holder/actions/workflows/ci.yml/badge.svg)](https://github.com/jordond/state-holder/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/jordond/state-holder)](http://www.apache.org/licenses/LICENSE-2.0)
 
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-v1.10.0-blue)](https://github.com/JetBrains/compose-multiplatform)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-v1.10.1-blue)](https://github.com/JetBrains/compose-multiplatform)
 ![badge-android](http://img.shields.io/badge/platform-android-6EDB8D.svg?style=flat)
 ![badge-jvm](http://img.shields.io/badge/platform-jvm-6EDB8D.svg?style=flat)
 ![badge-apple](http://img.shields.io/badge/platform-ios%2Fmacos%2Fwatchos%2Ftvos-CDCDCD.svg?style=flat)
