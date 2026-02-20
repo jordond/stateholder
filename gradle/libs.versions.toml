@@ -31,7 +31,7 @@ kotest = "6.1.3"
 turbine = "1.2.1"
 voyager = "1.1.0-beta03"
 navigation3-ui = "1.0.0-SNAPSHOT+release-1-10"
-compose-multiplatform-lifecycle = "2.10.0-SNAPSHOT+default"
+compose-multiplatform-lifecycle = "2.10.0-SNAPSHOT+migrate-dev-maven"
 
 [libraries]
 androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
